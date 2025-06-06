@@ -3,8 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import ImageLightbox from '@/app/components/ImageLightbox'
 import AuthButton from '@/app/components/AuthButton'
+import RefactoringCard from '@/app/components/RefactoringCard'
 
 interface Refactoring {
   id: string
@@ -22,7 +22,6 @@ export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [refactorings, setRefactorings] = useState<Refactoring[]>([])
   const [loading, setLoading] = useState(true)
-  const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string } | null>(null)
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest')
   const [filterLanguage, setFilterLanguage] = useState<string>('all')
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([])
@@ -243,81 +242,12 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {refactorings.map((refactoring) => (
-                <div
-                  key={refactoring.id}
-                  className="group relative bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all duration-300"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  
-                  <div className="p-4">
-                    {/* Before/After Preview */}
-                    <button
-                      onClick={() => router.push(`/refactor/${refactoring.id}`)}
-                      className="block w-full text-left"
-                    >
-                      <div className="grid grid-cols-2 gap-2 mb-4">
-                        <div 
-                          className="relative"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            setLightboxImage({ src: refactoring.before_screenshot_url, title: 'Before' })
-                          }}
-                        >
-                          <div className="absolute top-1 left-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full z-10">Before</div>
-                          <img
-                            src={refactoring.before_screenshot_url}
-                            alt="Before"
-                            className="w-full h-32 object-cover rounded-lg border border-gray-700 cursor-zoom-in hover:opacity-90 transition-opacity"
-                          />
-                        </div>
-                        <div 
-                          className="relative"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            setLightboxImage({ src: refactoring.after_screenshot_url!, title: 'After' })
-                          }}
-                        >
-                          <div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full z-10">After</div>
-                          <img
-                            src={refactoring.after_screenshot_url!}
-                            alt="After"
-                            className="w-full h-32 object-cover rounded-lg border border-gray-700 cursor-zoom-in hover:opacity-90 transition-opacity"
-                          />
-                        </div>
-                      </div>
-                    </button>
-
-                    <h3 className="font-semibold text-white mb-1">
-                      {refactoring.title || `Evolution #${refactoring.id.slice(0, 8)}`}
-                    </h3>
-                    
-                    <div className="flex items-center justify-between">
-                      <p className="text-gray-400 text-sm">
-                        {new Date(refactoring.created_at).toLocaleDateString()}
-                      </p>
-                      {refactoring.language && (
-                        <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
-                          {refactoring.language}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <RefactoringCard key={refactoring.id} refactoring={refactoring} />
               ))}
             </div>
           )}
         </div>
       </div>
-
-      {/* Image Lightbox */}
-      <ImageLightbox
-        isOpen={!!lightboxImage}
-        onClose={() => setLightboxImage(null)}
-        imageSrc={lightboxImage?.src || ''}
-        title={lightboxImage?.title}
-      />
 
       <style jsx>{`
         @keyframes gradient {

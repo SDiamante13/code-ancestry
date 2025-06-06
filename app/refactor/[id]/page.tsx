@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import ImageLightbox from '@/app/components/ImageLightbox'
+import ScreenshotDisplay from '@/app/components/ScreenshotDisplay'
+import ReactionButtons from '@/app/components/ReactionButtons'
+import RefactoringDetailsForm from '@/app/components/RefactoringDetailsForm'
 
 interface Refactoring {
   id: string
@@ -11,19 +13,10 @@ interface Refactoring {
   after_screenshot_url: string | null
   title: string | null
   description: string | null
+  language: string | null
   is_complete: boolean
 }
 
-interface ReactionCounts {
-  fire_count: number
-  lightbulb_count: number
-  thinking_count: number
-}
-
-const COMMON_LANGUAGES = [
-  'JavaScript', 'TypeScript', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust',
-  'Ruby', 'PHP', 'Swift', 'Kotlin', 'Scala', 'R', 'MATLAB', 'SQL', 'HTML/CSS'
-].sort()
 
 export default function RefactoringPage() {
   const { id } = useParams()
@@ -33,16 +26,9 @@ export default function RefactoringPage() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [reactions, setReactions] = useState<ReactionCounts>({ fire_count: 0, lightbulb_count: 0, thinking_count: 0 })
-  const [userReactions, setUserReactions] = useState<string[]>([])
-  const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string } | null>(null)
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('')
-  const [title, setTitle] = useState<string>('')
-  const [description, setDescription] = useState<string>('')
 
   useEffect(() => {
     fetchRefactoring()
-    fetchReactions()
   }, [id])
 
   const fetchRefactoring = async () => {
@@ -63,105 +49,6 @@ export default function RefactoringPage() {
     }
   }
 
-  const fetchReactions = async () => {
-    try {
-      const supabase = createClient()
-      
-      // Get reaction counts
-      const { data: counts, error: countsError } = await supabase
-        .from('reaction_counts')
-        .select('*')
-        .eq('refactoring_id', id)
-        .single()
-
-      if (!countsError && counts) {
-        setReactions(counts)
-      }
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user) {
-        // Get user's reactions
-        const { data: userReactionData, error: userError } = await supabase
-          .from('reactions')
-          .select('reaction_type')
-          .eq('refactoring_id', id)
-          .eq('user_id', user.id)
-
-        if (!userError && userReactionData) {
-          setUserReactions(userReactionData.map(r => r.reaction_type))
-        }
-      } else {
-        // Use session ID for anonymous users
-        const sessionId = localStorage.getItem('session_id') || generateSessionId()
-        localStorage.setItem('session_id', sessionId)
-
-        const { data: userReactionData, error: userError } = await supabase
-          .from('reactions')
-          .select('reaction_type')
-          .eq('refactoring_id', id)
-          .eq('user_id', sessionId)
-
-        if (!userError && userReactionData) {
-          setUserReactions(userReactionData.map(r => r.reaction_type))
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching reactions:', error)
-    }
-  }
-
-  const generateSessionId = () => {
-    return 'anon_' + Math.random().toString(36).substr(2, 9)
-  }
-
-  const handleReaction = async (reactionType: string) => {
-    try {
-      const supabase = createClient()
-      
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      const userId = user?.id || localStorage.getItem('session_id') || generateSessionId()
-      
-      if (!user) {
-        localStorage.setItem('session_id', userId)
-      }
-
-      if (userReactions.includes(reactionType)) {
-        // Remove reaction
-        await supabase
-          .from('reactions')
-          .delete()
-          .eq('refactoring_id', id)
-          .eq('user_id', userId)
-          .eq('reaction_type', reactionType)
-
-        setUserReactions(prev => prev.filter(r => r !== reactionType))
-        setReactions(prev => ({
-          ...prev,
-          [`${reactionType}_count`]: Math.max(0, prev[`${reactionType}_count` as keyof ReactionCounts] - 1)
-        }))
-      } else {
-        // Add reaction
-        await supabase
-          .from('reactions')
-          .insert({
-            refactoring_id: id,
-            user_id: userId,
-            reaction_type: reactionType
-          })
-
-        setUserReactions(prev => [...prev, reactionType])
-        setReactions(prev => ({
-          ...prev,
-          [`${reactionType}_count`]: prev[`${reactionType}_count` as keyof ReactionCounts] + 1
-        }))
-      }
-    } catch (error) {
-      console.error('Error handling reaction:', error)
-    }
-  }
 
   const handleAfterUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -170,9 +57,9 @@ export default function RefactoringPage() {
     setUploading(true)
     try {
       const supabase = createClient()
-      
+
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('screenshots')
         .upload(fileName, file)
 
@@ -208,27 +95,6 @@ export default function RefactoringPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleUpdateDetails = async () => {
-    if (!refactoring) return
-
-    try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('refactorings')
-        .update({
-          language: selectedLanguage || null,
-          title: title || null,
-          description: description || null
-        })
-        .eq('id', refactoring.id)
-
-      if (error) throw error
-      
-      await fetchRefactoring()
-    } catch (error) {
-      console.error('Error updating refactoring:', error)
-    }
-  }
 
   if (loading) {
     return (
@@ -252,7 +118,7 @@ export default function RefactoringPage() {
   return (
     <div className="min-h-screen bg-black">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-pink-900/10" />
-      
+
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex justify-between items-center mb-8">
           <button
@@ -264,7 +130,7 @@ export default function RefactoringPage() {
             </svg>
             Home
           </button>
-          
+
           {refactoring.is_complete && (
             <div className="flex items-center gap-3">
               <span className="text-gray-400 text-sm">Share:</span>
@@ -310,124 +176,20 @@ export default function RefactoringPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Before Screenshot */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl overflow-hidden border border-gray-800">
-              <div className="bg-gradient-to-r from-red-500 to-orange-500 px-6 py-3 flex items-center justify-between">
-                <span className="font-bold text-white flex items-center gap-2">
-                  <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-                  Before
-                </span>
-                <span className="text-white/80 text-sm">Original Code</span>
-              </div>
-              <div className="p-4">
-                {refactoring.before_screenshot_url && (
-                  <img
-                    src={refactoring.before_screenshot_url}
-                    alt="Before refactoring"
-                    className="w-full h-auto rounded-lg cursor-zoom-in hover:opacity-95 transition-opacity"
-                    onClick={() => setLightboxImage({ src: refactoring.before_screenshot_url, title: 'Before' })}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* After Screenshot */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl overflow-hidden border border-gray-800">
-              <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-3 flex items-center justify-between">
-                <span className="font-bold text-white flex items-center gap-2">
-                  <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-                  After
-                </span>
-                <span className="text-white/80 text-sm">Evolved Code</span>
-              </div>
-              <div className="p-4">
-                {refactoring.after_screenshot_url ? (
-                  <img
-                    src={refactoring.after_screenshot_url}
-                    alt="After refactoring"
-                    className="w-full h-auto rounded-lg cursor-zoom-in hover:opacity-95 transition-opacity"
-                    onClick={() => setLightboxImage({ src: refactoring.after_screenshot_url!, title: 'After' })}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center min-h-[400px]">
-                    <div className="text-center">
-                      <p className="text-gray-400 mb-6">Complete the evolution</p>
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="group relative bg-gradient-to-r from-green-500 to-blue-500 px-8 py-4 rounded-full font-semibold text-white hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300"
-                        disabled={uploading}
-                      >
-                        {uploading ? (
-                          <span className="flex items-center gap-3">
-                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            Uploading...
-                          </span>
-                        ) : (
-                          'Add After Screenshot'
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <ScreenshotDisplay
+          beforeUrl={refactoring.before_screenshot_url}
+          afterUrl={refactoring.after_screenshot_url}
+          onAfterClick={() => fileInputRef.current?.click()}
+          uploading={uploading}
+        />
 
         {/* Details Form */}
         {refactoring.is_complete && (!refactoring.language || !refactoring.title) && (
-          <div className="mt-8 p-6 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-pink-500/5 rounded-2xl border border-purple-500/20">
-            <h3 className="text-lg font-semibold text-white mb-4">Add Details (Optional)</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Programming Language</label>
-                <select
-                  value={selectedLanguage}
-                  onChange={(e) => setSelectedLanguage(e.target.value)}
-                  className="w-full bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="">Select a language...</option>
-                  {COMMON_LANGUAGES.map(lang => (
-                    <option key={lang} value={lang}>{lang}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Extract Method Refactoring"
-                  className="w-full bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="What did you refactor and why?"
-                  rows={3}
-                  className="w-full bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
-                />
-              </div>
-              
-              <button
-                onClick={handleUpdateDetails}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
-              >
-                Save Details
-              </button>
-            </div>
+          <div className="mt-8">
+            <RefactoringDetailsForm
+              refactoringId={refactoring.id}
+              onSuccess={fetchRefactoring}
+            />
           </div>
         )}
 
@@ -435,51 +197,15 @@ export default function RefactoringPage() {
           <>
             {/* Reactions */}
             <div className="mt-8 flex justify-center">
-              <div className="flex gap-4 bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-full px-8 py-4">
-                <button
-                  onClick={() => handleReaction('fire')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-                    userReactions.includes('fire')
-                      ? 'bg-orange-500/20 border border-orange-500/50 text-orange-300'
-                      : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:text-orange-300 hover:border-orange-500/30'
-                  }`}
-                >
-                  <span className="text-2xl">🔥</span>
-                  <span className="font-semibold">{reactions.fire_count || 0}</span>
-                </button>
-
-                <button
-                  onClick={() => handleReaction('lightbulb')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-                    userReactions.includes('lightbulb')
-                      ? 'bg-yellow-500/20 border border-yellow-500/50 text-yellow-300'
-                      : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:text-yellow-300 hover:border-yellow-500/30'
-                  }`}
-                >
-                  <span className="text-2xl">💡</span>
-                  <span className="font-semibold">{reactions.lightbulb_count || 0}</span>
-                </button>
-
-                <button
-                  onClick={() => handleReaction('thinking')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-                    userReactions.includes('thinking')
-                      ? 'bg-blue-500/20 border border-blue-500/50 text-blue-300'
-                      : 'bg-gray-800/50 border border-gray-700 text-gray-400 hover:text-blue-300 hover:border-blue-500/30'
-                  }`}
-                >
-                  <span className="text-2xl">🤔</span>
-                  <span className="font-semibold">{reactions.thinking_count || 0}</span>
-                </button>
-              </div>
+              <ReactionButtons refactoringId={refactoring.id} />
             </div>
 
             <div className="mt-12 p-8 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl border border-purple-500/20">
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-white mb-4">Evolution Complete</h3>
                 <p className="text-gray-300 max-w-2xl mx-auto">
-                  This refactoring is now part of the collective wisdom. Through MCP, AI assistants 
-                  worldwide can learn from this transformation and apply similar patterns to help 
+                  This refactoring is now part of the collective wisdom. Through MCP, AI assistants
+                  worldwide can learn from this transformation and apply similar patterns to help
                   developers everywhere.
                 </p>
               </div>
@@ -496,13 +222,6 @@ export default function RefactoringPage() {
         />
       </div>
 
-      {/* Image Lightbox */}
-      <ImageLightbox
-        isOpen={!!lightboxImage}
-        onClose={() => setLightboxImage(null)}
-        imageSrc={lightboxImage?.src || ''}
-        title={lightboxImage?.title}
-      />
     </div>
   )
 }
