@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import ImageLightbox from './ImageLightbox'
+import { analytics } from '@/lib/analytics'
 
 interface RefactoringCardProps {
   refactoring: {
@@ -74,7 +75,10 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              onClick={() => setIsFocused(false)}
+              onClick={() => {
+                analytics.trackFocusMode(refactoring.id, 'close')
+                setIsFocused(false)
+              }}
               className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,7 +141,14 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
           className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
 
         <div className="p-4">
-          <StartRefactoringButton onClick={() => router.push(`/refactor/${refactoring.id}`)} onClick1={(e) => {
+          <StartRefactoringButton onClick={() => {
+            analytics.trackEvolutionView(refactoring.id, {
+              source: 'card_click',
+              has_after: !!refactoring.after_screenshot_url,
+              language: refactoring.language
+            })
+            router.push(`/refactor/${refactoring.id}`)
+          }} onClick1={(e) => {
             e.preventDefault()
             e.stopPropagation()
             setLightboxImage({ src: refactoring.before_screenshot_url, title: 'Before' })
@@ -165,6 +176,7 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
               <button
                 onClick={(e) => {
                   e.stopPropagation()
+                  analytics.trackFocusMode(refactoring.id, 'open')
                   setIsFocused(true)
                 }}
                 className="text-gray-400 hover:text-purple-300 transition-colors p-1"

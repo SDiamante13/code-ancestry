@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import AuthButton from '@/app/components/AuthButton'
 import RefactoringCard from '@/app/components/RefactoringCard'
+import { analytics, usePageView } from '@/lib/analytics'
 
 interface Refactoring {
   id: string
@@ -27,6 +28,14 @@ export default function Home() {
   const [filterLanguage, setFilterLanguage] = useState<string>('all')
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([])
   const [showAuthPrompt, setShowAuthPrompt] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  usePageView('home', { 
+    total_evolutions: refactorings.length,
+    filter_language: filterLanguage,
+    sort_by: sortBy 
+  })
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -37,12 +46,25 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
+    fetchUser()
     fetchRefactorings()
   }, [sortBy, filterLanguage])
 
   useEffect(() => {
     fetchAvailableLanguages()
   }, [])
+
+  const fetchUser = async () => {
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    } catch (error) {
+      console.error('Error fetching user:', error)
+    } finally {
+      setAuthLoading(false)
+    }
+  }
 
   const fetchRefactorings = async () => {
     try {
@@ -89,16 +111,144 @@ export default function Home() {
   }
 
   const handleStartRefactoring = async () => {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
     if (!user) {
+      analytics.trackAuth('prompt_shown')
       setShowAuthPrompt(true)
     } else {
+      analytics.track('start_refactoring_clicked')
       router.push('/refactor/new')
     }
   }
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="relative">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full animate-spin" />
+          <div className="absolute inset-1 bg-black rounded-full" />
+        </div>
+      </div>
+    )
+  }
+
+  // Authenticated User Dashboard
+  if (user) {
+    return (
+      <div className="min-h-screen bg-black">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-pink-900/10" />
+        
+        <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Welcome back, <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">{user.email?.split('@')[0]}</span>
+              </h1>
+              <p className="text-gray-400">Share your code evolution and explore the ancestry</p>
+            </div>
+            <AuthButton />
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            {/* Start New Evolution */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-gray-900/80 backdrop-blur-xl border border-gray-800 rounded-2xl p-8 hover:border-purple-500/50 transition-all duration-300">
+                <div className="text-center">
+                  <div className="text-5xl mb-4">🧬</div>
+                  <h3 className="text-xl font-bold text-white mb-3">Start New Evolution</h3>
+                  <p className="text-gray-400 mb-6">Capture the ancestry of your next refactoring</p>
+                  <button
+                    onClick={handleStartRefactoring}
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+                  >
+                    Capture Evolution
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-gray-900/80 backdrop-blur-xl border border-gray-800 rounded-2xl p-8">
+                <div className="text-center">
+                  <div className="text-5xl mb-4">📊</div>
+                  <h3 className="text-xl font-bold text-white mb-3">Your Impact</h3>
+                  <div className="space-y-2 text-gray-300">
+                    <p><span className="text-blue-400 font-semibold">3</span> evolutions shared</p>
+                    <p><span className="text-purple-400 font-semibold">42</span> reactions received</p>
+                    <p><span className="text-pink-400 font-semibold">18</span> developers inspired</p>
+                  </div>
+                  <button
+                    onClick={() => router.push('/profile')}
+                    className="mt-4 text-purple-400 hover:text-purple-300 transition-colors text-sm"
+                  >
+                    View Profile →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Evolutions Feed */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Community Evolutions</h2>
+              <div className="flex gap-4 items-center">
+                {/* Language Filter */}
+                <select
+                  value={filterLanguage}
+                  onChange={(e) => setFilterLanguage(e.target.value)}
+                  className="bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="all">All Languages</option>
+                  {availableLanguages.map(lang => (
+                    <option key={lang} value={lang}>{lang}</option>
+                  ))}
+                </select>
+
+                {/* Sort Options */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}
+                  className="bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                </select>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="bg-gray-900/50 rounded-2xl p-4 animate-pulse">
+                    <div className="h-48 bg-gray-800 rounded-lg mb-4" />
+                    <div className="h-4 bg-gray-800 rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-gray-800 rounded w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : refactorings.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-gray-400 text-lg">No evolutions yet. Be the first!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {refactorings.map((refactoring) => (
+                  <RefactoringCard key={refactoring.id} refactoring={refactoring} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Unauthorized Landing Page
   return (
     <div className="min-h-screen bg-black overflow-hidden relative">
       {/* Animated gradient background */}
@@ -283,13 +433,19 @@ export default function Home() {
               
               <div className="space-y-3">
                 <button
-                  onClick={() => router.push('/auth/login')}
+                  onClick={() => {
+                    analytics.trackAuth('signup_clicked')
+                    router.push('/auth/login')
+                  }}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
                 >
                   Create Free Account
                 </button>
                 <button
-                  onClick={() => setShowAuthPrompt(false)}
+                  onClick={() => {
+                    analytics.trackAuth('continue_browsing')
+                    setShowAuthPrompt(false)
+                  }}
                   className="w-full text-gray-400 hover:text-white transition-colors px-6 py-3 rounded-lg border border-gray-700 hover:border-gray-600"
                 >
                   Continue Browsing

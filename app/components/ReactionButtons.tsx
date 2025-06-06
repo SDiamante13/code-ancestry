@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { analytics } from '@/lib/analytics'
 
 interface ReactionCounts {
   fire_count: number
@@ -86,6 +87,7 @@ export default function ReactionButtons({ refactoringId, initialCounts }: Reacti
           .eq('user_id', userId)
           .eq('reaction_type', reactionType)
 
+        analytics.trackReaction(refactoringId, reactionType, 'remove')
         setUserReactions(prev => prev.filter(r => r !== reactionType))
         setReactions(prev => ({
           ...prev,
@@ -101,6 +103,7 @@ export default function ReactionButtons({ refactoringId, initialCounts }: Reacti
             reaction_type: reactionType
           })
 
+        analytics.trackReaction(refactoringId, reactionType, 'add')
         setUserReactions(prev => [...prev, reactionType])
         setReactions(prev => ({
           ...prev,

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import ScreenshotDisplay from '@/app/components/ScreenshotDisplay'
 import ReactionButtons from '@/app/components/ReactionButtons'
 import RefactoringDetailsForm from '@/app/components/RefactoringDetailsForm'
+import { analytics, usePageView } from '@/lib/analytics'
 
 interface Refactoring {
   id: string
@@ -31,6 +32,13 @@ export default function RefactoringPage() {
   const [uploadingDuring, setUploadingDuring] = useState(false)
   const [uploadingBefore, setUploadingBefore] = useState(false)
   const [copied, setCopied] = useState(false)
+
+  usePageView('evolution_detail', {
+    evolution_id: id as string,
+    has_during: !!refactoring?.during_screenshot_url,
+    has_after: !!refactoring?.after_screenshot_url,
+    is_complete: refactoring?.is_complete
+  })
 
   useEffect(() => {
     fetchRefactoring()
@@ -83,10 +91,12 @@ export default function RefactoringPage() {
 
       if (dbError) throw dbError
 
+      analytics.trackImageReplacement('before', refactoring.id)
       await fetchRefactoring()
     } catch (error) {
       console.error('Error uploading before screenshot:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      analytics.trackError(`Before upload failed: ${errorMessage}`, { evolution_id: refactoring.id })
       alert(`Failed to upload before screenshot: ${errorMessage}. Please try again.`)
     } finally {
       setUploadingBefore(false)
@@ -121,10 +131,12 @@ export default function RefactoringPage() {
 
       if (dbError) throw dbError
 
+      analytics.trackEvolutionCreate('during', { evolution_id: refactoring.id })
       await fetchRefactoring()
     } catch (error) {
       console.error('Error uploading during screenshot:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      analytics.trackError(`During upload failed: ${errorMessage}`, { evolution_id: refactoring.id })
       alert(`Failed to upload during screenshot: ${errorMessage}. Please try again.`)
     } finally {
       setUploadingDuring(false)
@@ -160,10 +172,12 @@ export default function RefactoringPage() {
 
       if (dbError) throw dbError
 
+      analytics.trackEvolutionCreate('after', { evolution_id: refactoring.id })
       await fetchRefactoring()
     } catch (error) {
       console.error('Error uploading after screenshot:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      analytics.trackError(`After upload failed: ${errorMessage}`, { evolution_id: refactoring.id })
       alert(`Failed to upload after screenshot: ${errorMessage}. Please try again.`)
     } finally {
       setUploading(false)
