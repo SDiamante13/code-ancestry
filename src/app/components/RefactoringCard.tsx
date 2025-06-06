@@ -10,6 +10,7 @@ interface RefactoringCardProps {
     id: string
     created_at: string
     before_screenshot_url: string
+    during_screenshot_url: string | null
     after_screenshot_url: string | null
     title: string | null
     language: string | null
@@ -50,7 +51,7 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
               {refactoring.title || `Evolution #${refactoring.id.slice(0, 8)}`}
             </h3>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div className={`grid grid-cols-1 ${refactoring.during_screenshot_url ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-6 mb-6`}>
               <div className="relative">
                 <div className="absolute top-2 left-2 bg-red-500 text-white text-sm px-3 py-1 rounded-full z-10">Before</div>
                 <img
@@ -60,6 +61,17 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
                   onClick={() => setLightboxImage({ src: refactoring.before_screenshot_url, title: 'Before' })}
                 />
               </div>
+              {refactoring.during_screenshot_url && (
+                <div className="relative">
+                  <div className="absolute top-2 left-2 bg-yellow-500 text-white text-sm px-3 py-1 rounded-full z-10">During</div>
+                  <img
+                    src={refactoring.during_screenshot_url}
+                    alt="During"
+                    className="w-full h-auto rounded-lg border border-gray-700 cursor-zoom-in hover:opacity-90 transition-opacity"
+                    onClick={() => setLightboxImage({ src: refactoring.during_screenshot_url!, title: 'During' })}
+                  />
+                </div>
+              )}
               {refactoring.after_screenshot_url && (
                 <div className="relative">
                   <div className="absolute top-2 left-2 bg-green-500 text-white text-sm px-3 py-1 rounded-full z-10">After</div>
