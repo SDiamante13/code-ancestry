@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/src/lib/supabase/client'
+import { generateFileName, extractErrorMessage } from '@/src/lib/utils/fileUtils'
 
 export default function NewRefactoring() {
   const router = useRouter()
@@ -18,7 +19,7 @@ export default function NewRefactoring() {
     try {
       const supabase = createClient()
 
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
+      const fileName = generateFileName(file.name)
       const { error: uploadError } = await supabase.storage
         .from('screenshots')
         .upload(fileName, file)
@@ -47,7 +48,8 @@ export default function NewRefactoring() {
       router.push(`/refactor/${refactoring.id}`)
     } catch (error) {
       console.error('Error uploading screenshot:', error)
-      alert('Failed to upload screenshot. Please try again.')
+      const errorMessage = extractErrorMessage(error)
+      alert(`Failed to upload screenshot: ${errorMessage}. Please try again.`)
     } finally {
       setUploading(false)
     }

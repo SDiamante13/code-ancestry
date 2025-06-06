@@ -96,20 +96,24 @@ export default function Home() {
       // Get total reactions received on user's refactorings
       const refactoringIds = refactorings?.map(r => r.id) || []
       let reactions: any[] = []
-      let reactionsError = null
 
       if (refactoringIds.length > 0) {
-        const { data, error } = await supabase
-          .from('reactions')
-          .select('refactoring_id')
-          .in('refactoring_id', refactoringIds)
-        reactions = data || []
-        reactionsError = error
-      }
-
-      if (reactionsError) {
-        console.error('Error fetching reactions:', reactionsError)
-        throw reactionsError
+        try {
+          const { data, error } = await supabase
+            .from('reactions')
+            .select('refactoring_id')
+            .in('refactoring_id', refactoringIds)
+          
+          if (error) {
+            console.warn('Reactions table not accessible, using fallback:', error.message)
+            reactions = []
+          } else {
+            reactions = data || []
+          }
+        } catch (error) {
+          console.warn('Reactions feature not available:', error)
+          reactions = []
+        }
       }
 
       const stats = {

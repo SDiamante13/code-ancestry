@@ -7,6 +7,8 @@ import ScreenshotDisplay from '@/src/app/components/ScreenshotDisplay'
 import ReactionButtons from '@/src/app/components/ReactionButtons'
 import RefactoringDetailsForm from '@/src/app/components/RefactoringDetailsForm'
 import { analytics, usePageView } from '@/src/lib/analytics'
+import { generateFileName, extractErrorMessage } from '@/src/lib/utils/fileUtils'
+import LoadingSpinner from '@/src/app/components/LoadingSpinner'
 
 interface Refactoring {
   id: string
@@ -70,7 +72,7 @@ export default function RefactoringPage() {
     try {
       const supabase = createClient()
 
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
+      const fileName = generateFileName(file.name)
       const { error: uploadError } = await supabase.storage
         .from('screenshots')
         .upload(fileName, file)
@@ -94,7 +96,7 @@ export default function RefactoringPage() {
       await fetchRefactoring()
     } catch (error) {
       console.error('Error uploading before screenshot:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      const errorMessage = extractErrorMessage(error)
       analytics.trackError(`Before upload failed: ${errorMessage}`, { evolution_id: refactoring.id })
       alert(`Failed to upload before screenshot: ${errorMessage}. Please try again.`)
     } finally {
@@ -110,7 +112,7 @@ export default function RefactoringPage() {
     try {
       const supabase = createClient()
 
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
+      const fileName = generateFileName(file.name)
       const { error: uploadError } = await supabase.storage
         .from('screenshots')
         .upload(fileName, file)
@@ -134,7 +136,7 @@ export default function RefactoringPage() {
       await fetchRefactoring()
     } catch (error) {
       console.error('Error uploading during screenshot:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      const errorMessage = extractErrorMessage(error)
       analytics.trackError(`During upload failed: ${errorMessage}`, { evolution_id: refactoring.id })
       alert(`Failed to upload during screenshot: ${errorMessage}. Please try again.`)
     } finally {
@@ -150,7 +152,7 @@ export default function RefactoringPage() {
     try {
       const supabase = createClient()
 
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
+      const fileName = generateFileName(file.name)
       const { error: uploadError } = await supabase.storage
         .from('screenshots')
         .upload(fileName, file)
@@ -175,7 +177,7 @@ export default function RefactoringPage() {
       await fetchRefactoring()
     } catch (error) {
       console.error('Error uploading after screenshot:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      const errorMessage = extractErrorMessage(error)
       analytics.trackError(`After upload failed: ${errorMessage}`, { evolution_id: refactoring.id })
       alert(`Failed to upload after screenshot: ${errorMessage}. Please try again.`)
     } finally {
@@ -194,10 +196,7 @@ export default function RefactoringPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="relative">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full animate-spin" />
-          <div className="absolute inset-1 bg-black rounded-full" />
-        </div>
+        <LoadingSpinner />
       </div>
     )
   }
