@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import ImageLightbox from '@/app/components/ImageLightbox'
 
 interface Refactoring {
   id: string
@@ -29,6 +30,7 @@ export default function RefactoringPage() {
   const [copied, setCopied] = useState(false)
   const [reactions, setReactions] = useState<ReactionCounts>({ fire_count: 0, lightbulb_count: 0, thinking_count: 0 })
   const [userReactions, setUserReactions] = useState<string[]>([])
+  const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string } | null>(null)
 
   useEffect(() => {
     fetchRefactoring()
@@ -268,7 +270,8 @@ export default function RefactoringPage() {
                   <img
                     src={refactoring.before_screenshot_url}
                     alt="Before refactoring"
-                    className="w-full h-auto rounded-lg"
+                    className="w-full h-auto rounded-lg cursor-zoom-in hover:opacity-95 transition-opacity"
+                    onClick={() => setLightboxImage({ src: refactoring.before_screenshot_url, title: 'Before' })}
                   />
                 )}
               </div>
@@ -291,7 +294,8 @@ export default function RefactoringPage() {
                   <img
                     src={refactoring.after_screenshot_url}
                     alt="After refactoring"
-                    className="w-full h-auto rounded-lg"
+                    className="w-full h-auto rounded-lg cursor-zoom-in hover:opacity-95 transition-opacity"
+                    onClick={() => setLightboxImage({ src: refactoring.after_screenshot_url!, title: 'After' })}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center min-h-[400px]">
@@ -383,6 +387,14 @@ export default function RefactoringPage() {
           className="hidden"
         />
       </div>
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        isOpen={!!lightboxImage}
+        onClose={() => setLightboxImage(null)}
+        imageSrc={lightboxImage?.src || ''}
+        title={lightboxImage?.title}
+      />
     </div>
   )
 }
