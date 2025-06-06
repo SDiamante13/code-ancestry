@@ -7,6 +7,7 @@ import AuthButton from '@/src/app/components/AuthButton'
 import RefactoringCard from '@/src/app/components/RefactoringCard'
 import SearchBar from '@/src/app/components/SearchBar'
 import { analytics, usePageView } from '@/src/lib/analytics'
+import { fetchRandomEvolution } from '@/src/lib/utils/evolution'
 
 interface Refactoring {
   id: string
@@ -197,18 +198,9 @@ export default function Home() {
   }
 
   const handleRandomEvolution = async () => {
-    try {
-      analytics.track('random_evolution_clicked')
-      const response = await fetch('/api/random-evolution')
-      const data = await response.json()
-      
-      if (data.id) {
-        router.push(`/refactor/${data.id}`)
-      } else {
-        console.error('No random evolution found')
-      }
-    } catch (error) {
-      console.error('Error fetching random evolution:', error)
+    const evolutionId = await fetchRandomEvolution()
+    if (evolutionId) {
+      router.push(`/refactor/${evolutionId}`)
     }
   }
 

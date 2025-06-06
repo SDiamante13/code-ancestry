@@ -8,6 +8,7 @@ import ReactionButtons from '@/src/app/components/ReactionButtons'
 import RefactoringDetailsForm from '@/src/app/components/RefactoringDetailsForm'
 import { analytics, usePageView } from '@/src/lib/analytics'
 import { generateFileName, extractErrorMessage } from '@/src/lib/utils/fileUtils'
+import { fetchRandomEvolution } from '@/src/lib/utils/evolution'
 import LoadingSpinner from '@/src/app/components/LoadingSpinner'
 
 interface Refactoring {
@@ -204,6 +205,13 @@ export default function RefactoringPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleRandomEvolution = async () => {
+    const evolutionId = await fetchRandomEvolution()
+    if (evolutionId) {
+      router.push(`/refactor/${evolutionId}`)
+    }
+  }
+
 
   if (loading) {
     return (
@@ -227,15 +235,25 @@ export default function RefactoringPage() {
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex justify-between items-center mb-8">
-          <button
-            onClick={() => router.push('/')}
-            className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Home
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push('/')}
+              className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Home
+            </button>
+            
+            <button
+              onClick={handleRandomEvolution}
+              className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-300 px-4 py-2 rounded-lg hover:from-purple-500/30 hover:to-pink-500/30 hover:border-purple-500/50 transition-all duration-200 flex items-center gap-2"
+            >
+              <span className="text-lg">🎲</span>
+              Random
+            </button>
+          </div>
 
           {refactoring.is_complete && (
             <div className="flex items-center gap-3">
