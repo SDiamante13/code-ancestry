@@ -20,6 +20,11 @@ interface ReactionCounts {
   thinking_count: number
 }
 
+const COMMON_LANGUAGES = [
+  'JavaScript', 'TypeScript', 'Python', 'Java', 'C#', 'C++', 'Go', 'Rust',
+  'Ruby', 'PHP', 'Swift', 'Kotlin', 'Scala', 'R', 'MATLAB', 'SQL', 'HTML/CSS'
+].sort()
+
 export default function RefactoringPage() {
   const { id } = useParams()
   const router = useRouter()
@@ -31,6 +36,9 @@ export default function RefactoringPage() {
   const [reactions, setReactions] = useState<ReactionCounts>({ fire_count: 0, lightbulb_count: 0, thinking_count: 0 })
   const [userReactions, setUserReactions] = useState<string[]>([])
   const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string } | null>(null)
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('')
+  const [title, setTitle] = useState<string>('')
+  const [description, setDescription] = useState<string>('')
 
   useEffect(() => {
     fetchRefactoring()
@@ -178,6 +186,28 @@ export default function RefactoringPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleUpdateDetails = async () => {
+    if (!refactoring) return
+
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('refactorings')
+        .update({
+          language: selectedLanguage || null,
+          title: title || null,
+          description: description || null
+        })
+        .eq('id', refactoring.id)
+
+      if (error) throw error
+      
+      await fetchRefactoring()
+    } catch (error) {
+      console.error('Error updating refactoring:', error)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -246,8 +276,13 @@ export default function RefactoringPage() {
               {refactoring.title || 'Code Evolution #' + refactoring.id.slice(0, 8)}
             </span>
           </h1>
+          {refactoring.language && (
+            <span className="inline-block mt-2 text-sm bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full">
+              {refactoring.language}
+            </span>
+          )}
           {refactoring.description && (
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto mt-4">
               {refactoring.description}
             </p>
           )}
@@ -322,6 +357,57 @@ export default function RefactoringPage() {
             </div>
           </div>
         </div>
+
+        {/* Details Form */}
+        {refactoring.is_complete && (!refactoring.language || !refactoring.title) && (
+          <div className="mt-8 p-6 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-pink-500/5 rounded-2xl border border-purple-500/20">
+            <h3 className="text-lg font-semibold text-white mb-4">Add Details (Optional)</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Programming Language</label>
+                <select
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  className="w-full bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="">Select a language...</option>
+                  {COMMON_LANGUAGES.map(lang => (
+                    <option key={lang} value={lang}>{lang}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g., Extract Method Refactoring"
+                  className="w-full bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="What did you refactor and why?"
+                  rows={3}
+                  className="w-full bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
+                />
+              </div>
+              
+              <button
+                onClick={handleUpdateDetails}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+              >
+                Save Details
+              </button>
+            </div>
+          </div>
+        )}
 
         {refactoring.is_complete && (
           <>
