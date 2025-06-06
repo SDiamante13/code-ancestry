@@ -125,12 +125,29 @@ export default function RefactoringPage() {
           </button>
           
           {refactoring.is_complete && (
-            <button
-              onClick={handleShare}
-              className="group relative bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 px-6 py-2 rounded-full font-semibold text-white hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
-            >
-              {copied ? 'Copied!' : 'Share Evolution 🔗'}
-            </button>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-400 text-sm">Share:</span>
+              <div className="flex items-center gap-2 bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-full px-4 py-2">
+                <span className="text-gray-300 text-sm font-mono">
+                  {typeof window !== 'undefined' ? window.location.href : ''}
+                </span>
+                <button
+                  onClick={handleShare}
+                  className="text-purple-400 hover:text-purple-300 transition-colors"
+                  title="Copy link"
+                >
+                  {copied ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
