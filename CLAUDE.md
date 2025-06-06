@@ -63,9 +63,14 @@ Storage bucket `screenshots` holds uploaded images with public access.
 - ✅ Add after screenshot to complete the pair
 - ✅ Display before/after side-by-side
 - ✅ Homepage feed showing recent refactorings
-- ✅ Reactions system (🔥, 💡, 🤔) with anonymous tracking
+- ✅ Reactions system (🔥, 💡, 🤔) with user/anonymous tracking
 - ✅ Click-to-zoom lightbox for screenshots
-- ⬜ OG meta tags for link previews (partially implemented)
+- ✅ Language selection and filtering
+- ✅ User authentication with Supabase Auth
+- ✅ Basic user profiles
+- ⬜ Search functionality
+- ⬜ Moderation features
+- ⬜ OG meta tags for link previews
 
 ### Environment Variables Required
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
@@ -73,10 +78,11 @@ Storage bucket `screenshots` holds uploaded images with public access.
 
 ## Development Notes
 
-- The app uses Supabase SSR for authentication with cookie-based sessions (configured but not yet implemented)
+- The app uses Supabase SSR for authentication with cookie-based sessions
 - Row Level Security (RLS) is enabled on all tables
-- Anyone can view and create refactorings anonymously
-- Reactions use localStorage session IDs for anonymous tracking
+- Users can sign up/login with email and password
+- Authenticated users' refactorings are associated with their account
+- Reactions support both authenticated users and anonymous sessions
 - The middleware refreshes user sessions on every request
 - UI features animated gradients and glassmorphism effects
 - Mobile-first responsive design with PWA considerations

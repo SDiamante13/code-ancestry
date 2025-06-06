@@ -29,11 +29,15 @@ export default function NewRefactoring() {
         .from('screenshots')
         .getPublicUrl(fileName)
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      
       const { data: refactoring, error: dbError } = await supabase
         .from('refactorings')
         .insert({
           before_screenshot_url: publicUrl,
-          is_complete: false
+          is_complete: false,
+          author_id: user?.id || null
         })
         .select()
         .single()

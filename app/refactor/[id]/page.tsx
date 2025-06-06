@@ -78,18 +78,34 @@ export default function RefactoringPage() {
         setReactions(counts)
       }
 
-      // Get user's reactions (using session ID for anonymous users)
-      const sessionId = localStorage.getItem('session_id') || generateSessionId()
-      localStorage.setItem('session_id', sessionId)
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (user) {
+        // Get user's reactions
+        const { data: userReactionData, error: userError } = await supabase
+          .from('reactions')
+          .select('reaction_type')
+          .eq('refactoring_id', id)
+          .eq('user_id', user.id)
 
-      const { data: userReactionData, error: userError } = await supabase
-        .from('reactions')
-        .select('reaction_type')
-        .eq('refactoring_id', id)
-        .eq('user_id', sessionId)
+        if (!userError && userReactionData) {
+          setUserReactions(userReactionData.map(r => r.reaction_type))
+        }
+      } else {
+        // Use session ID for anonymous users
+        const sessionId = localStorage.getItem('session_id') || generateSessionId()
+        localStorage.setItem('session_id', sessionId)
 
-      if (!userError && userReactionData) {
-        setUserReactions(userReactionData.map(r => r.reaction_type))
+        const { data: userReactionData, error: userError } = await supabase
+          .from('reactions')
+          .select('reaction_type')
+          .eq('refactoring_id', id)
+          .eq('user_id', sessionId)
+
+        if (!userError && userReactionData) {
+          setUserReactions(userReactionData.map(r => r.reaction_type))
+        }
       }
     } catch (error) {
       console.error('Error fetching reactions:', error)
@@ -103,8 +119,14 @@ export default function RefactoringPage() {
   const handleReaction = async (reactionType: string) => {
     try {
       const supabase = createClient()
-      const sessionId = localStorage.getItem('session_id') || generateSessionId()
-      localStorage.setItem('session_id', sessionId)
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      const userId = user?.id || localStorage.getItem('session_id') || generateSessionId()
+      
+      if (!user) {
+        localStorage.setItem('session_id', userId)
+      }
 
       if (userReactions.includes(reactionType)) {
         // Remove reaction
@@ -112,7 +134,7 @@ export default function RefactoringPage() {
           .from('reactions')
           .delete()
           .eq('refactoring_id', id)
-          .eq('user_id', sessionId)
+          .eq('user_id', userId)
           .eq('reaction_type', reactionType)
 
         setUserReactions(prev => prev.filter(r => r !== reactionType))
@@ -126,7 +148,7 @@ export default function RefactoringPage() {
           .from('reactions')
           .insert({
             refactoring_id: id,
-            user_id: sessionId,
+            user_id: userId,
             reaction_type: reactionType
           })
 

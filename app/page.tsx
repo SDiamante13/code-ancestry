@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import ImageLightbox from '@/app/components/ImageLightbox'
+import AuthButton from '@/app/components/AuthButton'
 
 interface Refactoring {
   id: string
@@ -104,6 +105,11 @@ export default function Home() {
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
       <div className="relative z-10 container mx-auto px-4 py-16">
+        {/* Header with Auth */}
+        <div className="absolute top-4 right-4 z-20">
+          <AuthButton />
+        </div>
+        
         <div className="max-w-5xl mx-auto text-center">
           {/* AI/Human badges */}
           <div className="flex justify-center gap-4 mb-8">
