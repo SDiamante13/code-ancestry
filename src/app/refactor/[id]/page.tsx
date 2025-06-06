@@ -21,6 +21,7 @@ interface Refactoring {
   language: string | null
   is_complete: boolean
   author_id: string | null
+  created_at: string
 }
 
 
@@ -330,12 +331,30 @@ export default function RefactoringPage() {
 
             <div className="mt-12 p-8 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl border border-purple-500/20">
               <div className="text-center">
-                <h3 className="text-2xl font-bold text-white mb-4">Evolution Complete</h3>
-                <p className="text-gray-300 max-w-2xl mx-auto">
-                  This refactoring is now part of the collective wisdom. Through MCP, AI assistants
-                  worldwide can learn from this transformation and apply similar patterns to help
-                  developers everywhere.
-                </p>
+                {isOwner ? (
+                  <>
+                    <h3 className="text-2xl font-bold text-white mb-4">Evolution Complete</h3>
+                    <p className="text-gray-300 max-w-2xl mx-auto">
+                      This refactoring is now part of the collective wisdom. Through MCP, AI assistants
+                      worldwide can learn from this transformation and apply similar patterns to help
+                      developers everywhere.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-2xl font-bold text-white mb-2">Evolved by</h3>
+                    <p className="text-purple-400 text-lg mb-2">
+                      {refactoring.author_id ? 'A Fellow Developer' : 'Anonymous'}
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      {new Date(refactoring.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </>

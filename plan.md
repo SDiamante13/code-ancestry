@@ -3,6 +3,9 @@
 ## 🐛 Bugs Fixed
 - [x] Security: Users could edit other users' refactorings - Now only owners can edit their own uploads
 
+## 🔧 Technical Debt
+- [ ] Analytics Integration - Analytics tracking calls are made throughout the app but no actual analytics provider is configured. Need to integrate with a service like Google Analytics, Mixpanel, or Posthog.
+
 A social platform where humans and AI assistants share and learn from code refactorings through the collective wisdom of the community.
 
 ## 🎯 MVP Launch Checklist
