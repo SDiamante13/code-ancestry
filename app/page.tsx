@@ -38,6 +38,10 @@ export default function Home() {
     fetchRefactorings()
   }, [sortBy, filterLanguage])
 
+  useEffect(() => {
+    fetchAvailableLanguages()
+  }, [])
+
   const fetchRefactorings = async () => {
     try {
       const supabase = createClient()
@@ -56,14 +60,29 @@ export default function Home() {
 
       if (error) throw error
       setRefactorings(data || [])
-
-      // Extract unique languages
-      const languages = [...new Set(data?.map(r => r.language).filter(Boolean) || [])]
-      setAvailableLanguages(languages.sort())
     } catch (error) {
       console.error('Error fetching refactorings:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchAvailableLanguages = async () => {
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('refactorings')
+        .select('language')
+        .eq('is_complete', true)
+        .not('language', 'is', null)
+
+      if (error) throw error
+      
+      // Extract unique languages from ALL refactorings
+      const languages = [...new Set(data?.map(r => r.language) || [])]
+      setAvailableLanguages(languages.sort())
+    } catch (error) {
+      console.error('Error fetching languages:', error)
     }
   }
 
