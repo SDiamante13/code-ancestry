@@ -85,6 +85,23 @@ Storage bucket `screenshots` holds uploaded images with public access.
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 
+## Deployment
+
+### Netlify Deployment
+The app is optimized for Netlify deployment with Supabase backend:
+
+1. **Connect Repository**: Link your GitHub repo to Netlify
+2. **Build Settings**: 
+   - Build command: `npm run build`
+   - Publish directory: `.next`
+3. **Environment Variables**: Add Supabase environment variables in Netlify dashboard
+4. **Deploy**: Netlify will automatically build and deploy on every push
+
+The included `netlify.toml` configures:
+- Node.js 18 runtime
+- Proper redirects for Next.js App Router
+- Optimized build settings for Supabase SSR
+
 ## Development Notes
 
 - The app uses Supabase SSR for authentication with cookie-based sessions

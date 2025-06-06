@@ -19,10 +19,10 @@ interface RefactoringCardProps {
 
 function StartRefactoringButton(props: {
   onClick: () => void,
-  onClick1: (e) => void,
+  onClick1: (e: React.MouseEvent) => void,
   src: string,
   afterScreenshotUrl: string | null,
-  onClick2: (e) => void
+  onClick2: (e: React.MouseEvent) => void
 }) {
   return <button
     onClick={props.onClick}

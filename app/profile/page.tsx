@@ -41,7 +41,7 @@ export default function ProfilePage() {
       // Get user's refactorings
       const { data, error } = await supabase
         .from('refactorings')
-        .select('id, created_at, title, language, is_complete')
+        .select('id, created_at, title, language, is_complete, during_screenshot_url')
         .eq('author_id', user.id)
         .order('created_at', { ascending: false })
 

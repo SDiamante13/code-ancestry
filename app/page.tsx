@@ -95,7 +95,7 @@ export default function Home() {
 
       // Get total reactions received on user's refactorings
       const refactoringIds = refactorings?.map(r => r.id) || []
-      let reactions = []
+      let reactions: any[] = []
       let reactionsError = null
       
       if (refactoringIds.length > 0) {
@@ -103,7 +103,7 @@ export default function Home() {
           .from('reactions')
           .select('refactoring_id')
           .in('refactoring_id', refactoringIds)
-        reactions = data
+        reactions = data || []
         reactionsError = error
       }
 
