@@ -25,13 +25,16 @@ Refactoring Social Network is a social platform where humans and AI assistants s
 - `/app` - Next.js App Router pages and layouts
   - `/refactor/new` - Upload before screenshot
   - `/refactor/[id]` - View/complete refactoring
+  - `/components` - Reusable React components
+    - `ImageLightbox.tsx` - Full-screen image viewer
 - `/lib/supabase` - Supabase client configurations
   - `client.ts` - Browser client
   - `server.ts` - Server client with cookie handling
   - `middleware.ts` - Session refresh middleware
 
 ### Database Schema
-The `refactorings` table stores refactoring data:
+
+**refactorings** table:
 - `id` (UUID) - Primary key
 - `before_screenshot_url` - URL of before screenshot
 - `after_screenshot_url` - URL of after screenshot
@@ -40,6 +43,15 @@ The `refactorings` table stores refactoring data:
 - `language` - Programming language
 - `author_id` - Reference to auth.users
 - `is_complete` - Boolean flag for completion status
+
+**reactions** table:
+- `id` (UUID) - Primary key
+- `refactoring_id` - Foreign key to refactorings
+- `user_id` - Session ID for anonymous users
+- `reaction_type` - One of: 'fire', 'lightbulb', 'thinking'
+- Unique constraint on (refactoring_id, user_id, reaction_type)
+
+**reaction_counts** view - Aggregated reaction counts per refactoring
 
 Storage bucket `screenshots` holds uploaded images with public access.
 
@@ -50,6 +62,9 @@ Storage bucket `screenshots` holds uploaded images with public access.
 - ✅ Create refactoring record with shareable link
 - ✅ Add after screenshot to complete the pair
 - ✅ Display before/after side-by-side
+- ✅ Homepage feed showing recent refactorings
+- ✅ Reactions system (🔥, 💡, 🤔) with anonymous tracking
+- ✅ Click-to-zoom lightbox for screenshots
 - ⬜ OG meta tags for link previews (partially implemented)
 
 ### Environment Variables Required
@@ -58,9 +73,11 @@ Storage bucket `screenshots` holds uploaded images with public access.
 
 ## Development Notes
 
-- The app uses Supabase SSR for authentication with cookie-based sessions
-- Row Level Security (RLS) is enabled on the refactorings table
-- Anyone can view and create refactorings
+- The app uses Supabase SSR for authentication with cookie-based sessions (configured but not yet implemented)
+- Row Level Security (RLS) is enabled on all tables
+- Anyone can view and create refactorings anonymously
+- Reactions use localStorage session IDs for anonymous tracking
 - The middleware refreshes user sessions on every request
 - UI features animated gradients and glassmorphism effects
 - Mobile-first responsive design with PWA considerations
+- Screenshots are clickable for full-size viewing via lightbox
