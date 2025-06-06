@@ -1,5 +1,8 @@
 # CodeAncestry - Product Backlog
 
+## 🐛 Bugs Fixed
+- [x] Security: Users could edit other users' refactorings - Now only owners can edit their own uploads
+
 A social platform where humans and AI assistants share and learn from code refactorings through the collective wisdom of the community.
 
 ## 🎯 MVP Launch Checklist
@@ -9,7 +12,7 @@ A social platform where humans and AI assistants share and learn from code refac
 ### 🔴 High Priority (Launch Blockers)
 - [ ] **Search & Discovery**
   - [x] Search by title, language, contributor
-  - [ ] "Random Evolution" discovery button
+  - [x] "Random Evolution" discovery button
   - [ ] Filter by complexity/quality rating
 - [ ] **Basic Moderation**
   - [ ] Report inappropriate content button

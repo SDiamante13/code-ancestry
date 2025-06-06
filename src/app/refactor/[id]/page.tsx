@@ -19,6 +19,7 @@ interface Refactoring {
   description: string | null
   language: string | null
   is_complete: boolean
+  author_id: string | null
 }
 
 
@@ -33,6 +34,7 @@ export default function RefactoringPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadingDuring, setUploadingDuring] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [isOwner, setIsOwner] = useState(false)
 
   usePageView('evolution_detail', {
     evolution_id: id as string,
@@ -42,12 +44,17 @@ export default function RefactoringPage() {
   })
 
   useEffect(() => {
-    fetchRefactoring()
+    fetchRefactoringAndUser()
   }, [id])
 
-  const fetchRefactoring = async () => {
+  const fetchRefactoringAndUser = async () => {
     try {
       const supabase = createClient()
+      
+      // Fetch current user
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      // Fetch refactoring
       const { data, error } = await supabase
         .from('refactorings')
         .select('*')
@@ -56,6 +63,11 @@ export default function RefactoringPage() {
 
       if (error) throw error
       setRefactoring(data)
+      
+      // Check if current user is the owner
+      if (user && data.author_id) {
+        setIsOwner(user.id === data.author_id)
+      }
     } catch (error) {
       console.error('Error fetching refactoring:', error)
     } finally {
@@ -66,7 +78,7 @@ export default function RefactoringPage() {
 
   const handleBeforeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file || !refactoring) return
+    if (!file || !refactoring || !isOwner) return
 
     setUploading(true)
     try {
@@ -93,7 +105,7 @@ export default function RefactoringPage() {
       if (dbError) throw dbError
 
       analytics.trackImageReplacement('before', refactoring.id)
-      await fetchRefactoring()
+      await fetchRefactoringAndUser()
     } catch (error) {
       console.error('Error uploading before screenshot:', error)
       const errorMessage = extractErrorMessage(error)
@@ -106,7 +118,7 @@ export default function RefactoringPage() {
 
   const handleDuringUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file || !refactoring) return
+    if (!file || !refactoring || !isOwner) return
 
     setUploadingDuring(true)
     try {
@@ -133,7 +145,7 @@ export default function RefactoringPage() {
       if (dbError) throw dbError
 
       analytics.trackEvolutionCreate('during', { evolution_id: refactoring.id })
-      await fetchRefactoring()
+      await fetchRefactoringAndUser()
     } catch (error) {
       console.error('Error uploading during screenshot:', error)
       const errorMessage = extractErrorMessage(error)
@@ -146,7 +158,7 @@ export default function RefactoringPage() {
 
   const handleAfterUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file || !refactoring) return
+    if (!file || !refactoring || !isOwner) return
 
     setUploading(true)
     try {
@@ -174,7 +186,7 @@ export default function RefactoringPage() {
       if (dbError) throw dbError
 
       analytics.trackEvolutionCreate('after', { evolution_id: refactoring.id })
-      await fetchRefactoring()
+      await fetchRefactoringAndUser()
     } catch (error) {
       console.error('Error uploading after screenshot:', error)
       const errorMessage = extractErrorMessage(error)
@@ -274,19 +286,19 @@ export default function RefactoringPage() {
           beforeUrl={refactoring.before_screenshot_url}
           duringUrl={refactoring.during_screenshot_url}
           afterUrl={refactoring.after_screenshot_url}
-          onBeforeClick={() => beforeInputRef.current?.click()}
-          onDuringClick={() => duringInputRef.current?.click()}
-          onAfterClick={() => fileInputRef.current?.click()}
+          onBeforeClick={isOwner ? () => beforeInputRef.current?.click() : undefined}
+          onDuringClick={isOwner ? () => duringInputRef.current?.click() : undefined}
+          onAfterClick={isOwner ? () => fileInputRef.current?.click() : undefined}
           uploading={uploading}
           uploadingDuring={uploadingDuring}
         />
 
         {/* Details Form */}
-        {refactoring.is_complete && (!refactoring.language || !refactoring.title) && (
+        {refactoring.is_complete && (!refactoring.language || !refactoring.title) && isOwner && (
           <div className="mt-8">
             <RefactoringDetailsForm
               refactoringId={refactoring.id}
-              onSuccess={fetchRefactoring}
+              onSuccess={fetchRefactoringAndUser}
             />
           </div>
         )}

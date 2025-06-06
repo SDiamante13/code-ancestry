@@ -196,6 +196,22 @@ export default function Home() {
     }
   }
 
+  const handleRandomEvolution = async () => {
+    try {
+      analytics.track('random_evolution_clicked')
+      const response = await fetch('/api/random-evolution')
+      const data = await response.json()
+      
+      if (data.id) {
+        router.push(`/refactor/${data.id}`)
+      } else {
+        console.error('No random evolution found')
+      }
+    } catch (error) {
+      console.error('Error fetching random evolution:', error)
+    }
+  }
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -286,7 +302,7 @@ export default function Home() {
             />
             
             {/* Filters */}
-            <div className="flex gap-4 items-center mb-6">
+            <div className="flex gap-4 items-center mb-6 flex-wrap">
               {/* Language Filter */}
               <select
                 value={filterLanguage}
@@ -308,6 +324,15 @@ export default function Home() {
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
               </select>
+
+              {/* Random Evolution Button */}
+              <button
+                onClick={handleRandomEvolution}
+                className="ml-auto bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-300 px-4 py-2 rounded-lg hover:from-purple-500/30 hover:to-pink-500/30 hover:border-purple-500/50 transition-all duration-200 flex items-center gap-2"
+              >
+                <span className="text-lg">🎲</span>
+                Random Evolution
+              </button>
             </div>
 
             {loading ? (
@@ -452,7 +477,7 @@ export default function Home() {
             />
             
             {/* Filters */}
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-4 items-center flex-wrap">
               {/* Language Filter */}
               <select
                 value={filterLanguage}
@@ -474,6 +499,15 @@ export default function Home() {
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
               </select>
+
+              {/* Random Evolution Button */}
+              <button
+                onClick={handleRandomEvolution}
+                className="ml-auto bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-300 px-4 py-2 rounded-lg hover:from-purple-500/30 hover:to-pink-500/30 hover:border-purple-500/50 transition-all duration-200 flex items-center gap-2"
+              >
+                <span className="text-lg">🎲</span>
+                Random Evolution
+              </button>
             </div>
           </div>
 
