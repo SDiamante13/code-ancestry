@@ -11,6 +11,7 @@ interface Refactoring {
   title: string | null
   language: string | null
   is_complete: boolean
+  during_screenshot_url: string | null
 }
 
 export default function ProfilePage() {
@@ -92,11 +93,11 @@ export default function ProfilePage() {
         </div>
 
         <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Your Refactorings</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Your Recent Evolutions</h2>
           
           {refactorings.length === 0 ? (
             <p className="text-gray-400 text-center py-8">
-              You haven't shared any refactorings yet.
+              You haven't shared any evolutions yet.
             </p>
           ) : (
             <div className="space-y-4">

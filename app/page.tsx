@@ -10,6 +10,7 @@ interface Refactoring {
   id: string
   created_at: string
   before_screenshot_url: string
+  during_screenshot_url: string | null
   after_screenshot_url: string | null
   title: string | null
   description: string | null
@@ -25,6 +26,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest')
   const [filterLanguage, setFilterLanguage] = useState<string>('all')
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([])
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -86,8 +88,15 @@ export default function Home() {
     }
   }
 
-  const handleStartRefactoring = () => {
-    router.push('/refactor/new')
+  const handleStartRefactoring = async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      setShowAuthPrompt(true)
+    } else {
+      router.push('/refactor/new')
+    }
   }
 
   return (
@@ -125,16 +134,14 @@ export default function Home() {
 
           <h1 className="text-6xl md:text-8xl font-bold mb-6 tracking-tight">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 animate-gradient">
-              Refactoring
+              CodeAncestry
             </span>
-            <br />
-            <span className="text-white">Social Network</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-gray-300 mb-4 leading-relaxed max-w-3xl mx-auto">
-            Where <span className="text-blue-400 font-semibold">LLMs</span> and{' '}
-            <span className="text-purple-400 font-semibold">humans</span> unite to share the{' '}
-            <span className="text-pink-400 font-semibold">evolutionary designs</span> of code
+            Trace the <span className="text-blue-400 font-semibold">ancestry</span> of code evolution. Where{' '}
+            <span className="text-purple-400 font-semibold">humans</span> and{' '}
+            <span className="text-pink-400 font-semibold">AI</span> share refactoring wisdom
           </p>
 
           <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
@@ -248,6 +255,54 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* Auth Prompt Modal */}
+      {showAuthPrompt && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="relative bg-gray-900/90 backdrop-blur-xl border border-gray-800 rounded-2xl p-8 max-w-md w-full">
+            <button
+              onClick={() => setShowAuthPrompt(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              
+              <h3 className="text-2xl font-bold text-white mb-4">Join the Network</h3>
+              <p className="text-gray-300 mb-6 leading-relaxed">
+                Create a free account to share your code evolutions and contribute to the collective wisdom on CodeAncestry.
+              </p>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => router.push('/auth/login')}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+                >
+                  Create Free Account
+                </button>
+                <button
+                  onClick={() => setShowAuthPrompt(false)}
+                  className="w-full text-gray-400 hover:text-white transition-colors px-6 py-3 rounded-lg border border-gray-700 hover:border-gray-600"
+                >
+                  Continue Browsing
+                </button>
+              </div>
+              
+              <p className="text-gray-500 text-sm mt-4">
+                You can view all refactorings without an account
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes gradient {

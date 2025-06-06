@@ -7,6 +7,7 @@ CREATE TABLE refactorings (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()) NOT NULL,
   before_screenshot_url TEXT,
+  during_screenshot_url TEXT,
   after_screenshot_url TEXT,
   title TEXT,
   description TEXT,

@@ -39,34 +39,16 @@ export default function ReactionButtons({ refactoringId, initialCounts }: Reacti
         setReactions(counts)
       }
 
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user) {
-        // Get user's reactions
-        const { data: userReactionData, error: userError } = await supabase
-          .from('reactions')
-          .select('reaction_type')
-          .eq('refactoring_id', refactoringId)
-          .eq('user_id', user.id)
+      // Get user's reactions
+      const userId = await getUserId()
+      const { data: userReactionData, error: userError } = await supabase
+        .from('reactions')
+        .select('reaction_type')
+        .eq('refactoring_id', refactoringId)
+        .eq('user_id', userId)
 
-        if (!userError && userReactionData) {
-          setUserReactions(userReactionData.map(r => r.reaction_type))
-        }
-      } else {
-        // Use session ID for anonymous users
-        const sessionId = localStorage.getItem('session_id') || generateSessionId()
-        localStorage.setItem('session_id', sessionId)
-
-        const { data: userReactionData, error: userError } = await supabase
-          .from('reactions')
-          .select('reaction_type')
-          .eq('refactoring_id', refactoringId)
-          .eq('user_id', sessionId)
-
-        if (!userError && userReactionData) {
-          setUserReactions(userReactionData.map(r => r.reaction_type))
-        }
+      if (!userError && userReactionData) {
+        setUserReactions(userReactionData.map(r => r.reaction_type))
       }
     } catch (error) {
       console.error('Error fetching reactions:', error)
@@ -77,17 +59,23 @@ export default function ReactionButtons({ refactoringId, initialCounts }: Reacti
     return 'anon_' + Math.random().toString(36).substr(2, 9)
   }
 
+  const getUserId = async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (user) {
+      return user.id
+    } else {
+      const sessionId = localStorage.getItem('session_id') || generateSessionId()
+      localStorage.setItem('session_id', sessionId)
+      return sessionId
+    }
+  }
+
   const handleReaction = async (reactionType: string) => {
     try {
       const supabase = createClient()
-      
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      const userId = user?.id || localStorage.getItem('session_id') || generateSessionId()
-      
-      if (!user) {
-        localStorage.setItem('session_id', userId)
-      }
+      const userId = await getUserId()
 
       if (userReactions.includes(reactionType)) {
         // Remove reaction

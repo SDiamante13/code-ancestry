@@ -13,13 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Refactoring Social Network",
-  description: "Share your code refactorings with the world. Learn from others.",
+  title: "CodeAncestry",
+  description: "Trace the evolution of code. Share your refactorings and learn from the collective wisdom.",
   openGraph: {
-    title: "Refactoring Social Network",
-    description: "Share your code refactorings with the world. Learn from others.",
-    url: "https://refactor.ing",
-    siteName: "Refactoring Social Network",
+    title: "CodeAncestry",
+    description: "Trace the evolution of code. Share your refactorings and learn from the collective wisdom.",
+    url: "https://codeancestry.dev",
+    siteName: "CodeAncestry",
     images: [
       {
         url: "/og-image.png",

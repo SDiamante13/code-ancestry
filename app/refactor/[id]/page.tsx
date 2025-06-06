@@ -10,6 +10,7 @@ import RefactoringDetailsForm from '@/app/components/RefactoringDetailsForm'
 interface Refactoring {
   id: string
   before_screenshot_url: string
+  during_screenshot_url: string | null
   after_screenshot_url: string | null
   title: string | null
   description: string | null
@@ -22,9 +23,13 @@ export default function RefactoringPage() {
   const { id } = useParams()
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const duringInputRef = useRef<HTMLInputElement>(null)
+  const beforeInputRef = useRef<HTMLInputElement>(null)
   const [refactoring, setRefactoring] = useState<Refactoring | null>(null)
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [uploadingDuring, setUploadingDuring] = useState(false)
+  const [uploadingBefore, setUploadingBefore] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -49,6 +54,82 @@ export default function RefactoringPage() {
     }
   }
 
+
+  const handleBeforeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !refactoring) return
+
+    setUploadingBefore(true)
+    try {
+      const supabase = createClient()
+
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
+      const { error: uploadError } = await supabase.storage
+        .from('screenshots')
+        .upload(fileName, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('screenshots')
+        .getPublicUrl(fileName)
+
+      const { error: dbError } = await supabase
+        .from('refactorings')
+        .update({
+          before_screenshot_url: publicUrl
+        })
+        .eq('id', refactoring.id)
+
+      if (dbError) throw dbError
+
+      await fetchRefactoring()
+    } catch (error) {
+      console.error('Error uploading before screenshot:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert(`Failed to upload before screenshot: ${errorMessage}. Please try again.`)
+    } finally {
+      setUploadingBefore(false)
+    }
+  }
+
+  const handleDuringUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !refactoring) return
+
+    setUploadingDuring(true)
+    try {
+      const supabase = createClient()
+
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
+      const { error: uploadError } = await supabase.storage
+        .from('screenshots')
+        .upload(fileName, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('screenshots')
+        .getPublicUrl(fileName)
+
+      const { error: dbError } = await supabase
+        .from('refactorings')
+        .update({
+          during_screenshot_url: publicUrl
+        })
+        .eq('id', refactoring.id)
+
+      if (dbError) throw dbError
+
+      await fetchRefactoring()
+    } catch (error) {
+      console.error('Error uploading during screenshot:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert(`Failed to upload during screenshot: ${errorMessage}. Please try again.`)
+    } finally {
+      setUploadingDuring(false)
+    }
+  }
 
   const handleAfterUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -81,8 +162,9 @@ export default function RefactoringPage() {
 
       await fetchRefactoring()
     } catch (error) {
-      console.error('Error uploading screenshot:', error)
-      alert('Failed to upload screenshot. Please try again.')
+      console.error('Error uploading after screenshot:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert(`Failed to upload after screenshot: ${errorMessage}. Please try again.`)
     } finally {
       setUploading(false)
     }
@@ -178,9 +260,13 @@ export default function RefactoringPage() {
 
         <ScreenshotDisplay
           beforeUrl={refactoring.before_screenshot_url}
+          duringUrl={refactoring.during_screenshot_url}
           afterUrl={refactoring.after_screenshot_url}
+          onBeforeClick={() => beforeInputRef.current?.click()}
+          onDuringClick={() => duringInputRef.current?.click()}
           onAfterClick={() => fileInputRef.current?.click()}
           uploading={uploading}
+          uploadingDuring={uploadingDuring}
         />
 
         {/* Details Form */}
@@ -218,6 +304,20 @@ export default function RefactoringPage() {
           type="file"
           accept="image/*"
           onChange={handleAfterUpload}
+          className="hidden"
+        />
+        <input
+          ref={duringInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleDuringUpload}
+          className="hidden"
+        />
+        <input
+          ref={beforeInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleBeforeUpload}
           className="hidden"
         />
       </div>
