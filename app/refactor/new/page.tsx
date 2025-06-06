@@ -18,7 +18,6 @@ export default function NewRefactoring() {
     try {
       const supabase = createClient()
       
-      // Upload screenshot to Supabase storage
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('screenshots')
@@ -26,12 +25,10 @@ export default function NewRefactoring() {
 
       if (uploadError) throw uploadError
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('screenshots')
         .getPublicUrl(fileName)
 
-      // Create refactoring record
       const { data: refactoring, error: dbError } = await supabase
         .from('refactorings')
         .insert({
@@ -43,7 +40,6 @@ export default function NewRefactoring() {
 
       if (dbError) throw dbError
 
-      // Redirect to the refactoring page
       router.push(`/refactor/${refactoring.id}`)
     } catch (error) {
       console.error('Error uploading screenshot:', error)
@@ -54,7 +50,6 @@ export default function NewRefactoring() {
   }
 
   const handleCameraCapture = () => {
-    // For mobile devices, this will open the camera
     if (fileInputRef.current) {
       fileInputRef.current.accept = 'image/*'
       fileInputRef.current.capture = 'environment'
@@ -63,7 +58,6 @@ export default function NewRefactoring() {
   }
 
   const handleUploadClick = () => {
-    // For desktop file upload
     if (fileInputRef.current) {
       fileInputRef.current.accept = 'image/*'
       fileInputRef.current.removeAttribute('capture')
@@ -72,62 +66,101 @@ export default function NewRefactoring() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="container mx-auto px-4 max-w-2xl">
+    <div className="min-h-screen bg-black">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20" />
+      
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
         <button
           onClick={() => router.back()}
-          className="mb-8 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          className="mb-8 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
         >
-          ← Back
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back
         </button>
 
-        <h1 className="text-3xl font-bold mb-8">Capture Your Refactoring</h1>
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+              Capture Your Evolution
+            </span>
+          </h1>
+          <p className="text-gray-400 text-lg">
+            Document the transformation. Share the wisdom.
+          </p>
+        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-          <h2 className="text-xl font-semibold mb-6">Step 1: Upload the "Before" Code</h2>
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl blur-2xl" />
           
-          {!captureMethod && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                onClick={() => {
-                  setCaptureMethod('camera')
-                  handleCameraCapture()
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg flex flex-col items-center gap-2"
-                disabled={uploading}
-              >
-                <span className="text-4xl">📸</span>
-                <span>Take Photo</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setCaptureMethod('upload')
-                  handleUploadClick()
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-lg flex flex-col items-center gap-2"
-                disabled={uploading}
-              >
-                <span className="text-4xl">📁</span>
-                <span>Upload Screenshot</span>
-              </button>
+          <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl border border-gray-800 p-8 md:p-12">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse" />
+              <h2 className="text-2xl font-semibold text-white">Step 1: Before Code</h2>
             </div>
-          )}
+            
+            {!captureMethod && !uploading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button
+                  onClick={() => {
+                    setCaptureMethod('camera')
+                    handleCameraCapture()
+                  }}
+                  className="group relative overflow-hidden bg-gradient-to-br from-blue-500/20 to-purple-500/20 p-8 rounded-2xl border border-blue-500/30 hover:border-blue-400/50 transition-all duration-300"
+                >
+                  <div className="relative z-10">
+                    <span className="text-5xl mb-4 block">📸</span>
+                    <span className="text-xl font-semibold text-white">Take Photo</span>
+                    <p className="text-gray-400 text-sm mt-2">Perfect for mobile</p>
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </button>
 
-          {uploading && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Uploading your screenshot...</p>
+                <button
+                  onClick={() => {
+                    setCaptureMethod('upload')
+                    handleUploadClick()
+                  }}
+                  className="group relative overflow-hidden bg-gradient-to-br from-purple-500/20 to-pink-500/20 p-8 rounded-2xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300"
+                >
+                  <div className="relative z-10">
+                    <span className="text-5xl mb-4 block">📁</span>
+                    <span className="text-xl font-semibold text-white">Upload Screenshot</span>
+                    <p className="text-gray-400 text-sm mt-2">From your device</p>
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-pink-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </button>
+              </div>
+            )}
+
+            {uploading && (
+              <div className="text-center py-12">
+                <div className="relative inline-flex">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full animate-spin" />
+                  <div className="absolute inset-1 bg-gray-900 rounded-full" />
+                  <div className="absolute inset-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full animate-pulse" />
+                </div>
+                <p className="mt-6 text-gray-300 text-lg">Uploading to the evolutionary archive...</p>
+              </div>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            <div className="mt-8 p-6 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-2xl border border-purple-500/20">
+              <p className="text-gray-300 text-sm leading-relaxed">
+                <span className="font-semibold text-purple-400">AI Tip:</span> When connected via MCP, 
+                AI assistants can automatically capture and share refactorings as they happen, 
+                creating a real-time stream of code evolution.
+              </p>
             </div>
-          )}
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
+          </div>
         </div>
       </div>
     </div>

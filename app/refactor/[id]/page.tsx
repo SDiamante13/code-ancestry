@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import Image from 'next/image'
 
 interface Refactoring {
   id: string
@@ -21,6 +20,7 @@ export default function RefactoringPage() {
   const [refactoring, setRefactoring] = useState<Refactoring | null>(null)
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     fetchRefactoring()
@@ -52,7 +52,6 @@ export default function RefactoringPage() {
     try {
       const supabase = createClient()
       
-      // Upload screenshot to Supabase storage
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('screenshots')
@@ -60,12 +59,10 @@ export default function RefactoringPage() {
 
       if (uploadError) throw uploadError
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('screenshots')
         .getPublicUrl(fileName)
 
-      // Update refactoring record
       const { error: dbError } = await supabase
         .from('refactorings')
         .update({
@@ -76,7 +73,6 @@ export default function RefactoringPage() {
 
       if (dbError) throw dbError
 
-      // Refresh the data
       await fetchRefactoring()
     } catch (error) {
       console.error('Error uploading screenshot:', error)
@@ -89,94 +85,148 @@ export default function RefactoringPage() {
   const handleShare = () => {
     const url = window.location.href
     navigator.clipboard.writeText(url)
-    alert('Link copied to clipboard!')
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="relative">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full animate-spin" />
+          <div className="absolute inset-1 bg-black rounded-full" />
+        </div>
       </div>
     )
   }
 
   if (!refactoring) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Refactoring not found</p>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <p className="text-gray-400">Refactoring not found</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
+    <div className="min-h-screen bg-black">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-pink-900/10" />
+      
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex justify-between items-center mb-8">
           <button
             onClick={() => router.push('/')}
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            className="text-gray-400 hover:text-white transition-colors flex items-center gap-2"
           >
-            ← Home
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Home
           </button>
           
           {refactoring.is_complete && (
             <button
               onClick={handleShare}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
+              className="group relative bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 px-6 py-2 rounded-full font-semibold text-white hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
             >
-              Share Link 🔗
+              {copied ? 'Copied!' : 'Share Evolution 🔗'}
             </button>
           )}
         </div>
 
-        <h1 className="text-3xl font-bold mb-8">
-          {refactoring.title || 'Code Refactoring'}
-        </h1>
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+              {refactoring.title || 'Code Evolution #' + refactoring.id.slice(0, 8)}
+            </span>
+          </h1>
+          {refactoring.description && (
+            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+              {refactoring.description}
+            </p>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Before Screenshot */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-            <div className="bg-red-500 text-white px-4 py-2 font-semibold">
-              Before
-            </div>
-            <div className="p-4">
-              {refactoring.before_screenshot_url && (
-                <img
-                  src={refactoring.before_screenshot_url}
-                  alt="Before refactoring"
-                  className="w-full h-auto rounded"
-                />
-              )}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl overflow-hidden border border-gray-800">
+              <div className="bg-gradient-to-r from-red-500 to-orange-500 px-6 py-3 flex items-center justify-between">
+                <span className="font-bold text-white flex items-center gap-2">
+                  <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                  Before
+                </span>
+                <span className="text-white/80 text-sm">Original Code</span>
+              </div>
+              <div className="p-4">
+                {refactoring.before_screenshot_url && (
+                  <img
+                    src={refactoring.before_screenshot_url}
+                    alt="Before refactoring"
+                    className="w-full h-auto rounded-lg"
+                  />
+                )}
+              </div>
             </div>
           </div>
 
           {/* After Screenshot */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
-            <div className="bg-green-500 text-white px-4 py-2 font-semibold">
-              After
-            </div>
-            <div className="p-4">
-              {refactoring.after_screenshot_url ? (
-                <img
-                  src={refactoring.after_screenshot_url}
-                  alt="After refactoring"
-                  className="w-full h-auto rounded"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center min-h-[300px]">
-                  <p className="text-gray-500 mb-4">Upload the "after" screenshot</p>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg"
-                    disabled={uploading}
-                  >
-                    {uploading ? 'Uploading...' : 'Add After Screenshot'}
-                  </button>
-                </div>
-              )}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl overflow-hidden border border-gray-800">
+              <div className="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-3 flex items-center justify-between">
+                <span className="font-bold text-white flex items-center gap-2">
+                  <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                  After
+                </span>
+                <span className="text-white/80 text-sm">Evolved Code</span>
+              </div>
+              <div className="p-4">
+                {refactoring.after_screenshot_url ? (
+                  <img
+                    src={refactoring.after_screenshot_url}
+                    alt="After refactoring"
+                    className="w-full h-auto rounded-lg"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                      <p className="text-gray-400 mb-6">Complete the evolution</p>
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="group relative bg-gradient-to-r from-green-500 to-blue-500 px-8 py-4 rounded-full font-semibold text-white hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300"
+                        disabled={uploading}
+                      >
+                        {uploading ? (
+                          <span className="flex items-center gap-3">
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Uploading...
+                          </span>
+                        ) : (
+                          'Add After Screenshot'
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
+
+        {refactoring.is_complete && (
+          <div className="mt-12 p-8 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl border border-purple-500/20">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold text-white mb-4">Evolution Complete</h3>
+              <p className="text-gray-300 max-w-2xl mx-auto">
+                This refactoring is now part of the collective wisdom. Through MCP, AI assistants 
+                worldwide can learn from this transformation and apply similar patterns to help 
+                developers everywhere.
+              </p>
+            </div>
+          </div>
+        )}
 
         <input
           ref={fileInputRef}
