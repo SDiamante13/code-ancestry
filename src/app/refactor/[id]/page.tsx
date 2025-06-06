@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import ScreenshotDisplay from '@/app/components/ScreenshotDisplay'
-import ReactionButtons from '@/app/components/ReactionButtons'
-import RefactoringDetailsForm from '@/app/components/RefactoringDetailsForm'
-import { analytics, usePageView } from '@/lib/analytics'
+import { createClient } from '@/src/lib/supabase/client'
+import ScreenshotDisplay from '@/src/app/components/ScreenshotDisplay'
+import ReactionButtons from '@/src/app/components/ReactionButtons'
+import RefactoringDetailsForm from '@/src/app/components/RefactoringDetailsForm'
+import { analytics, usePageView } from '@/src/lib/analytics'
 
 interface Refactoring {
   id: string
@@ -30,7 +30,6 @@ export default function RefactoringPage() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [uploadingDuring, setUploadingDuring] = useState(false)
-  const [uploadingBefore, setUploadingBefore] = useState(false)
   const [copied, setCopied] = useState(false)
 
   usePageView('evolution_detail', {
@@ -67,7 +66,7 @@ export default function RefactoringPage() {
     const file = event.target.files?.[0]
     if (!file || !refactoring) return
 
-    setUploadingBefore(true)
+    setUploading(true)
     try {
       const supabase = createClient()
 
@@ -99,7 +98,7 @@ export default function RefactoringPage() {
       analytics.trackError(`Before upload failed: ${errorMessage}`, { evolution_id: refactoring.id })
       alert(`Failed to upload before screenshot: ${errorMessage}. Please try again.`)
     } finally {
-      setUploadingBefore(false)
+      setUploading(false)
     }
   }
 

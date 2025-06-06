@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/src/lib/supabase/client'
 
 export default function NewRefactoring() {
   const router = useRouter()
@@ -17,9 +17,9 @@ export default function NewRefactoring() {
     setUploading(true)
     try {
       const supabase = createClient()
-      
+
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('screenshots')
         .upload(fileName, file)
 
@@ -31,7 +31,7 @@ export default function NewRefactoring() {
 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       const { data: refactoring, error: dbError } = await supabase
         .from('refactorings')
         .insert({
@@ -72,7 +72,7 @@ export default function NewRefactoring() {
   return (
     <div className="min-h-screen bg-black">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20" />
-      
+
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
         <button
           onClick={() => router.back()}
@@ -97,13 +97,13 @@ export default function NewRefactoring() {
 
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl blur-2xl" />
-          
+
           <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-3xl border border-gray-800 p-8 md:p-12">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-8 h-8 bg-red-500 rounded-full animate-pulse" />
               <h2 className="text-2xl font-semibold text-white">Step 1: Before Code</h2>
             </div>
-            
+
             {!captureMethod && !uploading && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <button
@@ -159,8 +159,8 @@ export default function NewRefactoring() {
 
             <div className="mt-8 p-6 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-2xl border border-purple-500/20">
               <p className="text-gray-300 text-sm leading-relaxed">
-                <span className="font-semibold text-purple-400">AI Tip:</span> When connected via MCP, 
-                AI assistants can automatically capture and share refactorings as they happen, 
+                <span className="font-semibold text-purple-400">AI Tip:</span> When connected via MCP,
+                AI assistants can automatically capture and share refactorings as they happen,
                 creating a real-time stream of code evolution.
               </p>
             </div>

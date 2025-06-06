@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import LanguageSelector from './LanguageSelector'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/src/lib/supabase/client'
 
 interface RefactoringDetailsFormProps {
   refactoringId: string
@@ -29,7 +29,7 @@ export default function RefactoringDetailsForm({ refactoringId, onSuccess }: Ref
         .eq('id', refactoringId)
 
       if (error) throw error
-      
+
       if (onSuccess) {
         onSuccess()
       }
@@ -52,7 +52,7 @@ export default function RefactoringDetailsForm({ refactoringId, onSuccess }: Ref
             className="w-full"
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">Title</label>
           <input
@@ -63,7 +63,7 @@ export default function RefactoringDetailsForm({ refactoringId, onSuccess }: Ref
             className="w-full bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-2">Description</label>
           <textarea
@@ -74,7 +74,7 @@ export default function RefactoringDetailsForm({ refactoringId, onSuccess }: Ref
             className="w-full bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
           />
         </div>
-        
+
         <button
           onClick={handleUpdateDetails}
           disabled={saving}

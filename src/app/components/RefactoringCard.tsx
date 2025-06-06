@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import ImageLightbox from './ImageLightbox'
-import { analytics } from '@/lib/analytics'
+import { analytics } from '@/src/lib/analytics'
 
 interface RefactoringCardProps {
   refactoring: {
@@ -66,11 +66,11 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
   return (
     <>
       {isFocused && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setIsFocused(false)}
         >
-          <div 
+          <div
             className="relative bg-gray-900/90 backdrop-blur-xl border border-gray-800 rounded-2xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -85,11 +85,11 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            
+
             <h3 className="font-semibold text-white mb-4 text-xl pr-12">
               {refactoring.title || `Evolution #${refactoring.id.slice(0, 8)}`}
             </h3>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <div className="relative">
                 <div className="absolute top-2 left-2 bg-red-500 text-white text-sm px-3 py-1 rounded-full z-10">Before</div>
@@ -134,7 +134,7 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
           </div>
         </div>
       )}
-      
+
       <div
         className="group relative bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all duration-300">
         <div

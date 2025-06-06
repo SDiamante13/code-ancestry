@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/src/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
 interface Refactoring {
@@ -27,15 +27,15 @@ export default function ProfilePage() {
   const fetchUserAndRefactorings = async () => {
     try {
       const supabase = createClient()
-      
+
       // Get current user
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (!user) {
         router.push('/auth/login')
         return
       }
-      
+
       setUser(user)
 
       // Get user's refactorings
@@ -68,7 +68,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-black">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-pink-900/10" />
-      
+
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
         <button
           onClick={() => router.push('/')}
@@ -94,7 +94,7 @@ export default function ProfilePage() {
 
         <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-8">
           <h2 className="text-2xl font-bold text-white mb-6">Your Recent Evolutions</h2>
-          
+
           {refactorings.length === 0 ? (
             <p className="text-gray-400 text-center py-8">
               You haven't shared any evolutions yet.

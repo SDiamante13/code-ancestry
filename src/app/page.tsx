@@ -2,10 +2,10 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import AuthButton from '@/app/components/AuthButton'
-import RefactoringCard from '@/app/components/RefactoringCard'
-import { analytics, usePageView } from '@/lib/analytics'
+import { createClient } from '@/src/lib/supabase/client'
+import AuthButton from '@/src/app/components/AuthButton'
+import RefactoringCard from '@/src/app/components/RefactoringCard'
+import { analytics, usePageView } from '@/src/lib/analytics'
 
 interface Refactoring {
   id: string
@@ -36,10 +36,10 @@ export default function Home() {
     totalViews: 0
   })
 
-  usePageView('home', { 
+  usePageView('home', {
     total_evolutions: refactorings.length,
     filter_language: filterLanguage,
-    sort_by: sortBy 
+    sort_by: sortBy
   })
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export default function Home() {
       const { data: { user } } = await supabase.auth.getUser()
       console.log('User fetched:', user?.id)
       setUser(user)
-      
+
       if (user) {
         console.log('Fetching stats for user:', user.id)
         await fetchUserStats(user.id)
@@ -80,7 +80,7 @@ export default function Home() {
   const fetchUserStats = async (userId: string) => {
     try {
       const supabase = createClient()
-      
+
       // Get user's refactorings count
       const { data: refactorings, error: refactoringsError } = await supabase
         .from('refactorings')
@@ -97,7 +97,7 @@ export default function Home() {
       const refactoringIds = refactorings?.map(r => r.id) || []
       let reactions: any[] = []
       let reactionsError = null
-      
+
       if (refactoringIds.length > 0) {
         const { data, error } = await supabase
           .from('reactions')
@@ -166,7 +166,7 @@ export default function Home() {
         .not('language', 'is', null)
 
       if (error) throw error
-      
+
       // Extract unique languages from ALL refactorings
       const languages = [...new Set(data?.map(r => r.language) || [])]
       setAvailableLanguages(languages.sort())
@@ -201,7 +201,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-black">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-purple-900/10 to-pink-900/10" />
-        
+
         <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
@@ -324,13 +324,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black overflow-hidden relative">
       {/* Animated gradient background */}
-      <div 
+      <div
         className="absolute inset-0 opacity-50"
         style={{
           background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgb(59, 130, 246), rgb(147, 51, 234), rgb(236, 72, 153))`,
         }}
       />
-      
+
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
@@ -339,7 +339,7 @@ export default function Home() {
         <div className="absolute top-4 right-4 z-20">
           <AuthButton />
         </div>
-        
+
         <div className="max-w-5xl mx-auto text-center">
           {/* Feature badges */}
           <div className="flex justify-center gap-4 mb-8">
@@ -361,15 +361,15 @@ export default function Home() {
           </h1>
 
           <p className="text-xl md:text-2xl text-gray-300 mb-4 leading-relaxed max-w-3xl mx-auto">
-            <span className="text-blue-400 font-semibold">Every commit has a story.</span> Share the journey of your code from messy to clean, 
+            <span className="text-blue-400 font-semibold">Every commit has a story.</span> Share the journey of your code from messy to clean,
             broken to beautiful, complex to elegant.
           </p>
 
           <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
-            Capture screenshots of your code before and after refactoring. 
+            Capture screenshots of your code before and after refactoring.
             Build a visual timeline of improvement and inspire others with your transformations.
           </p>
-          
+
           <button
             onClick={handleStartRefactoring}
             className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25"
@@ -416,8 +416,8 @@ export default function Home() {
           <div className="mt-16 p-8 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl border border-purple-500/20">
             <h3 className="text-2xl font-bold mb-4 text-white">Every Commit Has a Story</h3>
             <p className="text-gray-300 max-w-2xl mx-auto">
-              Behind every great piece of code is a journey of iteration, improvement, and discovery. 
-              CodeAncestry captures these stories, creating a visual timeline that celebrates 
+              Behind every great piece of code is a journey of iteration, improvement, and discovery.
+              CodeAncestry captures these stories, creating a visual timeline that celebrates
               the craft of writing better code.
             </p>
           </div>
@@ -488,19 +488,19 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              
+
               <h3 className="text-2xl font-bold text-white mb-4">Join the Network</h3>
               <p className="text-gray-300 mb-6 leading-relaxed">
                 Create a free account to share your refactoring stories and learn from the community on CodeAncestry.
               </p>
-              
+
               <div className="space-y-3">
                 <button
                   onClick={() => {
@@ -521,7 +521,7 @@ export default function Home() {
                   Continue Browsing
                 </button>
               </div>
-              
+
               <p className="text-gray-500 text-sm mt-4">
                 You can browse all code stories without an account
               </p>

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { analytics } from '@/lib/analytics'
+import { createClient } from '@/src/lib/supabase/client'
+import { analytics } from '@/src/lib/analytics'
 
 interface ReactionCounts {
   fire_count: number
@@ -28,7 +28,7 @@ export default function ReactionButtons({ refactoringId, initialCounts }: Reacti
   const fetchReactions = async () => {
     try {
       const supabase = createClient()
-      
+
       // Get reaction counts
       const { data: counts, error: countsError } = await supabase
         .from('reaction_counts')
@@ -63,7 +63,7 @@ export default function ReactionButtons({ refactoringId, initialCounts }: Reacti
   const getUserId = async () => {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (user) {
       return user.id
     } else {
