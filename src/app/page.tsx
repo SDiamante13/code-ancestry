@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/src/lib/supabase/client'
 import AuthButton from '@/src/app/components/AuthButton'
 import RefactoringCard from '@/src/app/components/RefactoringCard'
+import SearchBar from '@/src/app/components/SearchBar'
 import { analytics, usePageView } from '@/src/lib/analytics'
 
 interface Refactoring {
@@ -27,6 +28,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest')
   const [filterLanguage, setFilterLanguage] = useState<string>('all')
   const [availableLanguages, setAvailableLanguages] = useState<string[]>([])
+  const [searchTerm, setSearchTerm] = useState<string>('')
   const [showAuthPrompt, setShowAuthPrompt] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -53,7 +55,7 @@ export default function Home() {
   useEffect(() => {
     fetchUser()
     fetchRefactorings()
-  }, [sortBy, filterLanguage])
+  }, [sortBy, filterLanguage, searchTerm])
 
   useEffect(() => {
     fetchAvailableLanguages()
@@ -149,9 +151,14 @@ export default function Home() {
         query = query.eq('language', filterLanguage)
       }
 
+      if (searchTerm.trim()) {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,language.ilike.%${searchTerm}%`)
+      }
+
       const { data, error } = await query
 
       if (error) throw error
+      
       setRefactorings(data || [])
     } catch (error) {
       console.error('Error fetching refactorings:', error)
@@ -270,31 +277,37 @@ export default function Home() {
 
           {/* Recent Evolutions Feed */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Community Evolutions</h2>
-              <div className="flex gap-4 items-center">
-                {/* Language Filter */}
-                <select
-                  value={filterLanguage}
-                  onChange={(e) => setFilterLanguage(e.target.value)}
-                  className="bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="all">All Languages</option>
-                  {availableLanguages.map(lang => (
-                    <option key={lang} value={lang}>{lang}</option>
-                  ))}
-                </select>
+            <h2 className="text-2xl font-bold text-white mb-6">Community Evolutions</h2>
+            
+            {/* Search Bar */}
+            <SearchBar 
+              onSearch={setSearchTerm}
+              className="mb-6"
+            />
+            
+            {/* Filters */}
+            <div className="flex gap-4 items-center mb-6">
+              {/* Language Filter */}
+              <select
+                value={filterLanguage}
+                onChange={(e) => setFilterLanguage(e.target.value)}
+                className="bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
+              >
+                <option value="all">All Languages</option>
+                {availableLanguages.map(lang => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+              </select>
 
-                {/* Sort Options */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}
-                  className="bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                </select>
-              </div>
+              {/* Sort Options */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}
+                className="bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
             </div>
 
             {loading ? (
@@ -429,8 +442,16 @@ export default function Home() {
 
         {/* Recent Refactorings Feed */}
         <div className="mt-24 max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-white">Recent Evolutions</h2>
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-white mb-6">Recent Evolutions</h2>
+            
+            {/* Search Bar */}
+            <SearchBar 
+              onSearch={setSearchTerm}
+              className="mb-6"
+            />
+            
+            {/* Filters */}
             <div className="flex gap-4 items-center">
               {/* Language Filter */}
               <select

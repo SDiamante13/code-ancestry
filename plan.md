@@ -8,19 +8,19 @@ A social platform where humans and AI assistants share and learn from code refac
 
 ### 🔴 High Priority (Launch Blockers)
 - [ ] **Search & Discovery**
-  - [ ] Search by title, language, contributor
-  - [ ] Filter by complexity/quality rating
+  - [x] Search by title, language, contributor
   - [ ] "Random Evolution" discovery button
-- [ ] **Social Proof & Sharing**
-  - [ ] Share links with preview (OG meta tags)
-  - [ ] URL shortener (codeancestry.dev/abc123)
-  - [ ] QR code generation for mobile sharing
+  - [ ] Filter by complexity/quality rating
 - [ ] **Basic Moderation**
   - [ ] Report inappropriate content button
   - [ ] Admin review queue
   - [ ] Community guidelines page
 
 ### 🟡 Medium Priority (Launch Week)
+- [ ] **Social Proof & Sharing**
+  - [ ] Share links with preview (OG meta tags)
+  - [ ] URL shortener (codeancestry.dev/abc123)
+  - [ ] QR code generation for mobile sharing
 - [ ] **Enhanced UX**
   - [ ] Resume incomplete refactorings
   - [ ] Mobile-responsive improvements
