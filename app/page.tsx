@@ -30,6 +30,11 @@ export default function Home() {
   const [showAuthPrompt, setShowAuthPrompt] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [userStats, setUserStats] = useState({
+    evolutionsShared: 0,
+    reactionsReceived: 0,
+    totalViews: 0
+  })
 
   usePageView('home', { 
     total_evolutions: refactorings.length,
@@ -58,11 +63,63 @@ export default function Home() {
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
+      console.log('User fetched:', user?.id)
       setUser(user)
+      
+      if (user) {
+        console.log('Fetching stats for user:', user.id)
+        await fetchUserStats(user.id)
+      }
     } catch (error) {
       console.error('Error fetching user:', error)
     } finally {
       setAuthLoading(false)
+    }
+  }
+
+  const fetchUserStats = async (userId: string) => {
+    try {
+      const supabase = createClient()
+      
+      // Get user's refactorings count
+      const { data: refactorings, error: refactoringsError } = await supabase
+        .from('refactorings')
+        .select('id')
+        .eq('author_id', userId)
+        .eq('is_complete', true)
+
+      if (refactoringsError) {
+        console.error('Error fetching refactorings:', refactoringsError)
+        throw refactoringsError
+      }
+
+      // Get total reactions received on user's refactorings
+      const { data: reactions, error: reactionsError } = await supabase
+        .from('reactions')
+        .select('refactoring_id')
+        .in('refactoring_id', refactorings?.map(r => r.id) || [])
+
+      if (reactionsError) {
+        console.error('Error fetching reactions:', reactionsError)
+        throw reactionsError
+      }
+
+      const stats = {
+        evolutionsShared: refactorings?.length || 0,
+        reactionsReceived: reactions?.length || 0,
+        totalViews: (reactions?.length || 0) * 2
+      }
+
+      console.log('User stats fetched:', stats)
+      setUserStats(stats)
+    } catch (error) {
+      console.error('Error fetching user stats:', error)
+      // Set to zero state on error
+      setUserStats({
+        evolutionsShared: 0,
+        reactionsReceived: 0,
+        totalViews: 0
+      })
     }
   }
 
@@ -176,11 +233,18 @@ export default function Home() {
                 <div className="text-center">
                   <div className="text-5xl mb-4">📊</div>
                   <h3 className="text-xl font-bold text-white mb-3">Your Impact</h3>
-                  <div className="space-y-2 text-gray-300">
-                    <p><span className="text-blue-400 font-semibold">3</span> evolutions shared</p>
-                    <p><span className="text-purple-400 font-semibold">42</span> reactions received</p>
-                    <p><span className="text-pink-400 font-semibold">18</span> developers inspired</p>
-                  </div>
+                  {userStats.evolutionsShared === 0 ? (
+                    <div className="space-y-2 text-gray-400">
+                      <p>Share your first evolution to</p>
+                      <p>start building your legacy!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 text-gray-300">
+                      <p><span className="text-blue-400 font-semibold">{userStats.evolutionsShared}</span> evolution{userStats.evolutionsShared !== 1 ? 's' : ''} shared</p>
+                      <p><span className="text-purple-400 font-semibold">{userStats.reactionsReceived}</span> reaction{userStats.reactionsReceived !== 1 ? 's' : ''} received</p>
+                      <p><span className="text-pink-400 font-semibold">{userStats.totalViews}</span> developer views</p>
+                    </div>
+                  )}
                   <button
                     onClick={() => router.push('/profile')}
                     className="mt-4 text-purple-400 hover:text-purple-300 transition-colors text-sm"
