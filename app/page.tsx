@@ -2,10 +2,24 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+
+interface Refactoring {
+  id: string
+  created_at: string
+  before_screenshot_url: string
+  after_screenshot_url: string | null
+  title: string | null
+  description: string | null
+  language: string | null
+  is_complete: boolean
+}
 
 export default function Home() {
   const router = useRouter()
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [refactorings, setRefactorings] = useState<Refactoring[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -14,6 +28,29 @@ export default function Home() {
     window.addEventListener('mousemove', handleMouseMove)
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
+
+  useEffect(() => {
+    fetchRefactorings()
+  }, [])
+
+  const fetchRefactorings = async () => {
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('refactorings')
+        .select('*')
+        .eq('is_complete', true)
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      if (error) throw error
+      setRefactorings(data || [])
+    } catch (error) {
+      console.error('Error fetching refactorings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleStartRefactoring = () => {
     router.push('/refactor/new')
@@ -118,6 +155,81 @@ export default function Home() {
               creating an unprecedented collaboration between human ingenuity and artificial intelligence.
             </p>
           </div>
+        </div>
+
+        {/* Recent Refactorings Feed */}
+        <div className="mt-24 max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-white">Recent Evolutions</h2>
+            <div className="flex gap-2">
+              <span className="text-gray-400 text-sm">Live feed of code transformations</span>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-gray-900/50 rounded-2xl p-4 animate-pulse">
+                  <div className="h-48 bg-gray-800 rounded-lg mb-4" />
+                  <div className="h-4 bg-gray-800 rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-gray-800 rounded w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : refactorings.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-gray-400 text-lg">No refactorings yet. Be the first!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {refactorings.map((refactoring) => (
+                <button
+                  key={refactoring.id}
+                  onClick={() => router.push(`/refactor/${refactoring.id}`)}
+                  className="group relative bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 text-left"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  <div className="p-4">
+                    {/* Before/After Preview */}
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      <div className="relative">
+                        <div className="absolute top-1 left-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">Before</div>
+                        <img
+                          src={refactoring.before_screenshot_url}
+                          alt="Before"
+                          className="w-full h-32 object-cover rounded-lg border border-gray-700"
+                        />
+                      </div>
+                      <div className="relative">
+                        <div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">After</div>
+                        <img
+                          src={refactoring.after_screenshot_url!}
+                          alt="After"
+                          className="w-full h-32 object-cover rounded-lg border border-gray-700"
+                        />
+                      </div>
+                    </div>
+
+                    <h3 className="font-semibold text-white mb-1">
+                      {refactoring.title || `Evolution #${refactoring.id.slice(0, 8)}`}
+                    </h3>
+                    
+                    <div className="flex items-center justify-between">
+                      <p className="text-gray-400 text-sm">
+                        {new Date(refactoring.created_at).toLocaleDateString()}
+                      </p>
+                      {refactoring.language && (
+                        <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
+                          {refactoring.language}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
