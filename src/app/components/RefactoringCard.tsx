@@ -17,46 +17,6 @@ interface RefactoringCardProps {
   }
 }
 
-function StartRefactoringButton(props: {
-  onClick: () => void,
-  onClick1: (e: React.MouseEvent) => void,
-  src: string,
-  afterScreenshotUrl: string | null,
-  onClick2: (e: React.MouseEvent) => void
-}) {
-  return <button
-    onClick={props.onClick}
-    className="block w-full text-left"
-  >
-    <div className="grid grid-cols-2 gap-2 mb-4">
-      <div
-        className="relative"
-        onClick={props.onClick1}
-      >
-        <div className="absolute top-1 left-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full z-10">Before</div>
-        <img
-          src={props.src}
-          alt="Before"
-          className="w-full h-32 object-cover rounded-lg border border-gray-700 cursor-zoom-in hover:opacity-90 transition-opacity"
-        />
-      </div>
-      {props.afterScreenshotUrl && (
-        <div
-          className="relative"
-          onClick={props.onClick2}
-        >
-          <div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full z-10">After
-          </div>
-          <img
-            src={props.afterScreenshotUrl}
-            alt="After"
-            className="w-full h-32 object-cover rounded-lg border border-gray-700 cursor-zoom-in hover:opacity-90 transition-opacity"
-          />
-        </div>
-      )}
-    </div>
-  </button>;
-}
 
 export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
   const router = useRouter()
@@ -141,23 +101,34 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
           className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"/>
 
         <div className="p-4">
-          <StartRefactoringButton onClick={() => {
-            analytics.trackEvolutionView(refactoring.id, {
-              source: 'card_click',
-              has_after: !!refactoring.after_screenshot_url,
-              language: refactoring.language
-            })
-            router.push(`/refactor/${refactoring.id}`)
-          }} onClick1={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setLightboxImage({ src: refactoring.before_screenshot_url, title: 'Before' })
-          }} src={refactoring.before_screenshot_url} afterScreenshotUrl={refactoring.after_screenshot_url}
-                                  onClick2={(e) => {
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                    setLightboxImage({ src: refactoring.after_screenshot_url!, title: 'After' })
-                                  }}/>
+          <div 
+            onClick={() => {
+              analytics.trackFocusMode(refactoring.id, 'open')
+              setIsFocused(true)
+            }}
+            className="cursor-pointer"
+          >
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <div className="relative">
+                <div className="absolute top-1 left-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full z-10">Before</div>
+                <img
+                  src={refactoring.before_screenshot_url}
+                  alt="Before"
+                  className="w-full h-32 object-cover rounded-lg border border-gray-700 hover:opacity-90 transition-opacity"
+                />
+              </div>
+              {refactoring.after_screenshot_url && (
+                <div className="relative">
+                  <div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full z-10">After</div>
+                  <img
+                    src={refactoring.after_screenshot_url}
+                    alt="After"
+                    className="w-full h-32 object-cover rounded-lg border border-gray-700 hover:opacity-90 transition-opacity"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
 
           <h3 className="font-semibold text-white mb-1">
             {refactoring.title || `Evolution #${refactoring.id.slice(0, 8)}`}
@@ -167,26 +138,11 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
             <p className="text-gray-400 text-sm">
               {new Date(refactoring.created_at).toLocaleDateString()}
             </p>
-            <div className="flex items-center gap-2">
-              {refactoring.language && (
-                <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
-                  {refactoring.language}
-                </span>
-              )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  analytics.trackFocusMode(refactoring.id, 'open')
-                  setIsFocused(true)
-                }}
-                className="text-gray-400 hover:text-purple-300 transition-colors p-1"
-                title="Focus view"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-                </svg>
-              </button>
-            </div>
+            {refactoring.language && (
+              <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
+                {refactoring.language}
+              </span>
+            )}
           </div>
         </div>
       </div>

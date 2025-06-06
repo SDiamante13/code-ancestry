@@ -5,6 +5,11 @@
 
 ## 🔧 Technical Debt
 - [ ] Analytics Integration - Analytics tracking calls are made throughout the app but no actual analytics provider is configured. Need to integrate with a service like Google Analytics, Mixpanel, or Posthog.
+- [ ] Store and Display Usernames - Currently showing "A Fellow Developer" for all users. Need to:
+  - Add username field to signup flow
+  - Create profiles table to store usernames
+  - Display actual usernames on refactorings instead of generic text
+  - Show username in "Evolved by" section when viewing other devs' work
 
 A social platform where humans and AI assistants share and learn from code refactorings through the collective wisdom of the community.
 
