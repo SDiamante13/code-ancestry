@@ -22,6 +22,9 @@ export default function Home() {
   const [refactorings, setRefactorings] = useState<Refactoring[]>([])
   const [loading, setLoading] = useState(true)
   const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string } | null>(null)
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest')
+  const [filterLanguage, setFilterLanguage] = useState<string>('all')
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>([])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -33,20 +36,30 @@ export default function Home() {
 
   useEffect(() => {
     fetchRefactorings()
-  }, [])
+  }, [sortBy, filterLanguage])
 
   const fetchRefactorings = async () => {
     try {
       const supabase = createClient()
-      const { data, error } = await supabase
+      let query = supabase
         .from('refactorings')
         .select('*')
         .eq('is_complete', true)
-        .order('created_at', { ascending: false })
+        .order('created_at', { ascending: sortBy === 'oldest' })
         .limit(20)
+
+      if (filterLanguage !== 'all') {
+        query = query.eq('language', filterLanguage)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
       setRefactorings(data || [])
+
+      // Extract unique languages
+      const languages = [...new Set(data?.map(r => r.language).filter(Boolean) || [])]
+      setAvailableLanguages(languages.sort())
     } catch (error) {
       console.error('Error fetching refactorings:', error)
     } finally {
@@ -163,8 +176,28 @@ export default function Home() {
         <div className="mt-24 max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-white">Recent Evolutions</h2>
-            <div className="flex gap-2">
-              <span className="text-gray-400 text-sm">Live feed of code transformations</span>
+            <div className="flex gap-4 items-center">
+              {/* Language Filter */}
+              <select
+                value={filterLanguage}
+                onChange={(e) => setFilterLanguage(e.target.value)}
+                className="bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
+              >
+                <option value="all">All Languages</option>
+                {availableLanguages.map(lang => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+              </select>
+
+              {/* Sort Options */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}
+                className="bg-gray-900/50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg focus:border-purple-500 focus:outline-none"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
             </div>
           </div>
 
