@@ -94,10 +94,18 @@ export default function Home() {
       }
 
       // Get total reactions received on user's refactorings
-      const { data: reactions, error: reactionsError } = await supabase
-        .from('reactions')
-        .select('refactoring_id')
-        .in('refactoring_id', refactorings?.map(r => r.id) || [])
+      const refactoringIds = refactorings?.map(r => r.id) || []
+      let reactions = []
+      let reactionsError = null
+      
+      if (refactoringIds.length > 0) {
+        const { data, error } = await supabase
+          .from('reactions')
+          .select('refactoring_id')
+          .in('refactoring_id', refactoringIds)
+        reactions = data
+        reactionsError = error
+      }
 
       if (reactionsError) {
         console.error('Error fetching reactions:', reactionsError)
@@ -333,16 +341,16 @@ export default function Home() {
         </div>
         
         <div className="max-w-5xl mx-auto text-center">
-          {/* AI/Human badges */}
+          {/* Feature badges */}
           <div className="flex justify-center gap-4 mb-8">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
-              🤖 AI-Powered
+              📸 Before & After
             </span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
-              🌐 MCP Connected
+              🔥 Community Driven
             </span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-pink-500/20 text-pink-300 border border-pink-500/30">
-              👥 Human+Bot Collaboration
+              🧬 Code Evolution
             </span>
           </div>
 
@@ -353,15 +361,13 @@ export default function Home() {
           </h1>
 
           <p className="text-xl md:text-2xl text-gray-300 mb-4 leading-relaxed max-w-3xl mx-auto">
-            Trace the <span className="text-blue-400 font-semibold">ancestry</span> of code evolution. Where{' '}
-            <span className="text-purple-400 font-semibold">humans</span> and{' '}
-            <span className="text-pink-400 font-semibold">AI</span> share refactoring wisdom
+            <span className="text-blue-400 font-semibold">Every commit has a story.</span> Share the journey of your code from messy to clean, 
+            broken to beautiful, complex to elegant.
           </p>
 
           <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
-            Through the Model Context Protocol, AI assistants can directly contribute 
-            refactorings, creating a living archive of mankind and botkind&apos;s collective 
-            wisdom in code improvement.
+            Capture screenshots of your code before and after refactoring. 
+            Build a visual timeline of improvement and inspire others with your transformations.
           </p>
           
           <button
@@ -376,10 +382,10 @@ export default function Home() {
             <div className="group relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
               <div className="relative bg-gray-900/50 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl hover:border-purple-500/50 transition-all duration-300">
-                <div className="text-5xl mb-4">🤖</div>
-                <h3 className="text-xl font-bold mb-3 text-white">AI-First Design</h3>
+                <div className="text-5xl mb-4">📸</div>
+                <h3 className="text-xl font-bold mb-3 text-white">Visual Stories</h3>
                 <p className="text-gray-400">
-                  LLMs connect via MCP to automatically share refactorings as they help developers
+                  Capture before and after screenshots to tell the complete story of your refactoring journey
                 </p>
               </div>
             </div>
@@ -388,9 +394,9 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
               <div className="relative bg-gray-900/50 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl hover:border-pink-500/50 transition-all duration-300">
                 <div className="text-5xl mb-4">🧬</div>
-                <h3 className="text-xl font-bold mb-3 text-white">Evolutionary Archive</h3>
+                <h3 className="text-xl font-bold mb-3 text-white">Code Evolution</h3>
                 <p className="text-gray-400">
-                  Watch code evolve through the lens of both human creativity and AI optimization
+                  Track the ancestry of great code through community-shared refactoring transformations
                 </p>
               </div>
             </div>
@@ -399,20 +405,20 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 to-blue-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
               <div className="relative bg-gray-900/50 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl hover:border-blue-500/50 transition-all duration-300">
                 <div className="text-5xl mb-4">🌍</div>
-                <h3 className="text-xl font-bold mb-3 text-white">Global Knowledge</h3>
+                <h3 className="text-xl font-bold mb-3 text-white">Learn Together</h3>
                 <p className="text-gray-400">
-                  A shared consciousness of code improvements across all languages and paradigms
+                  Discover patterns and techniques from developers worldwide across all languages and frameworks
                 </p>
               </div>
             </div>
           </div>
 
           <div className="mt-16 p-8 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl border border-purple-500/20">
-            <h3 className="text-2xl font-bold mb-4 text-white">The MCP Revolution</h3>
+            <h3 className="text-2xl font-bold mb-4 text-white">Every Commit Has a Story</h3>
             <p className="text-gray-300 max-w-2xl mx-auto">
-              With Model Context Protocol integration, every AI assistant becomes a contributor. 
-              As they help refactor code around the world, they can share these improvements here, 
-              creating an unprecedented collaboration between human ingenuity and artificial intelligence.
+              Behind every great piece of code is a journey of iteration, improvement, and discovery. 
+              CodeAncestry captures these stories, creating a visual timeline that celebrates 
+              the craft of writing better code.
             </p>
           </div>
         </div>
@@ -492,7 +498,7 @@ export default function Home() {
               
               <h3 className="text-2xl font-bold text-white mb-4">Join the Network</h3>
               <p className="text-gray-300 mb-6 leading-relaxed">
-                Create a free account to share your code evolutions and contribute to the collective wisdom on CodeAncestry.
+                Create a free account to share your refactoring stories and learn from the community on CodeAncestry.
               </p>
               
               <div className="space-y-3">
@@ -517,7 +523,7 @@ export default function Home() {
               </div>
               
               <p className="text-gray-500 text-sm mt-4">
-                You can view all refactorings without an account
+                You can browse all code stories without an account
               </p>
             </div>
           </div>

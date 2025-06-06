@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Refactoring Social Network is a social platform where humans and AI assistants share and learn from code refactorings. It's built as a Next.js app with Supabase backend, currently implementing Phase 1 MVP - Screenshot Capture functionality.
+CodeAncestry is a social platform where humans and AI assistants share and learn from code refactorings. It's built as a Next.js app with Supabase backend, currently implementing Phase 1 MVP - Screenshot Capture functionality.
 
 ## Commands
 
@@ -25,18 +25,24 @@ Refactoring Social Network is a social platform where humans and AI assistants s
 - `/app` - Next.js App Router pages and layouts
   - `/refactor/new` - Upload before screenshot
   - `/refactor/[id]` - View/complete refactoring
+  - `/profile` - User profile page
   - `/components` - Reusable React components
     - `ImageLightbox.tsx` - Full-screen image viewer
+    - `AuthButton.tsx` - Authentication component
+    - `RefactoringCard.tsx` - Refactoring display card
+    - `ReactionButtons.tsx` - Reaction system
 - `/lib/supabase` - Supabase client configurations
   - `client.ts` - Browser client
   - `server.ts` - Server client with cookie handling
   - `middleware.ts` - Session refresh middleware
+- `/lib/analytics.ts` - Analytics tracking utilities
 
 ### Database Schema
 
 **refactorings** table:
 - `id` (UUID) - Primary key
 - `before_screenshot_url` - URL of before screenshot
+- `during_screenshot_url` - URL of optional during screenshot
 - `after_screenshot_url` - URL of after screenshot
 - `title` - Optional refactoring title
 - `description` - Optional description
@@ -68,6 +74,9 @@ Storage bucket `screenshots` holds uploaded images with public access.
 - ✅ Language selection and filtering
 - ✅ User authentication with Supabase Auth
 - ✅ Basic user profiles
+- ✅ User dashboard with personalized experience
+- ✅ User statistics tracking (evolutions shared, reactions received, views)
+- ✅ Analytics integration for user behavior tracking
 - ⬜ Search functionality
 - ⬜ Moderation features
 - ⬜ OG meta tags for link previews
@@ -87,3 +96,6 @@ Storage bucket `screenshots` holds uploaded images with public access.
 - UI features animated gradients and glassmorphism effects
 - Mobile-first responsive design with PWA considerations
 - Screenshots are clickable for full-size viewing via lightbox
+- Authenticated users get personalized dashboard with statistics
+- Analytics track user engagement and page views
+- Dual experience: public landing page for visitors, dashboard for users
