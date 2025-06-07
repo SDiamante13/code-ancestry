@@ -90,6 +90,7 @@ export default function Home() {
         .select('id')
         .eq('author_id', userId)
         .eq('is_complete', true)
+        .eq('is_hidden', false)
 
       if (refactoringsError) {
         console.error('Error fetching refactorings:', refactoringsError)
@@ -145,6 +146,7 @@ export default function Home() {
         .from('refactorings')
         .select('*')
         .eq('is_complete', true)
+        .eq('is_hidden', false)
         .order('created_at', { ascending: sortBy === 'oldest' })
         .limit(20)
 
@@ -175,6 +177,7 @@ export default function Home() {
         .from('refactorings')
         .select('language')
         .eq('is_complete', true)
+        .eq('is_hidden', false)
         .not('language', 'is', null)
 
       if (error) throw error

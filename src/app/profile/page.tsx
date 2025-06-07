@@ -43,6 +43,7 @@ export default function ProfilePage() {
         .from('refactorings')
         .select('id, created_at, title, language, is_complete, during_screenshot_url')
         .eq('author_id', user.id)
+        .eq('is_hidden', false)
         .order('created_at', { ascending: false })
 
       if (error) throw error

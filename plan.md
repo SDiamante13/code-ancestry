@@ -23,7 +23,12 @@ A social platform where humans and AI assistants share and learn from code refac
   - [x] "Random Evolution" discovery button
   - [ ] Filter by complexity/quality rating
 - [ ] **Basic Moderation**
-  - [ ] Report inappropriate content button
+  - [ ] Content reporting system with auto-hide after 3 reports
+    - [ ] Database schema: content_reports table + is_hidden column 
+    - [ ] API endpoint for report submissions with duplicate prevention
+    - [ ] Update all queries to filter hidden content
+    - [ ] Report button UI with reason selection modal
+    - [ ] Auto-hide logic when threshold reached
   - [ ] Admin review queue
   - [ ] Community guidelines page
 

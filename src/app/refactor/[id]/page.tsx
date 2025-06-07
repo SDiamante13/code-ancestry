@@ -61,6 +61,7 @@ export default function RefactoringPage() {
         .from('refactorings')
         .select('*')
         .eq('id', id)
+        .eq('is_hidden', false)
         .single()
 
       if (error) throw error

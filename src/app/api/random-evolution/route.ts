@@ -10,6 +10,7 @@ export async function GET() {
       .from('refactorings')
       .select('*', { count: 'exact', head: true })
       .eq('is_complete', true)
+      .eq('is_hidden', false)
     
     if (countError) throw countError
     
@@ -25,6 +26,7 @@ export async function GET() {
       .from('refactorings')
       .select('id')
       .eq('is_complete', true)
+      .eq('is_hidden', false)
       .range(randomOffset, randomOffset)
       .single()
     
