@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/src/lib/supabase/client'
+import { analytics, usePageView, useUserIdentification } from '@/src/lib/analytics'
 import type { User } from '@supabase/supabase-js'
 
 interface Refactoring {
@@ -19,6 +20,15 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null)
   const [refactorings, setRefactorings] = useState<Refactoring[]>([])
   const [loading, setLoading] = useState(true)
+
+  usePageView('profile', {
+    total_evolutions: refactorings.length
+  })
+
+  useUserIdentification(user?.id, {
+    email: user?.email,
+    created_at: user?.created_at
+  })
 
   useEffect(() => {
     fetchUserAndRefactorings()
@@ -72,7 +82,10 @@ export default function ProfilePage() {
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
         <button
-          onClick={() => router.push('/')}
+          onClick={() => {
+            analytics.trackNavigation('home_view')
+            router.push('/')
+          }}
           className="mb-8 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,7 +118,13 @@ export default function ProfilePage() {
               {refactorings.map((refactoring) => (
                 <button
                   key={refactoring.id}
-                  onClick={() => router.push(`/refactor/${refactoring.id}`)}
+                  onClick={() => {
+                    analytics.trackUserEngagement('click', { 
+                      action: 'view_own_evolution',
+                      evolution_id: refactoring.id 
+                    })
+                    router.push(`/refactor/${refactoring.id}`)
+                  }}
                   className="w-full text-left p-4 bg-gray-800/50 hover:bg-gray-800 rounded-lg transition-colors"
                 >
                   <div className="flex justify-between items-start">

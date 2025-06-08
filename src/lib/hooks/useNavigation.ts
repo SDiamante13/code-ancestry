@@ -24,12 +24,13 @@ export default function useNavigation(): UseNavigationReturn {
       analytics.trackAuth('prompt_shown')
       setShowAuthPrompt(true)
     } else {
-      analytics.track('start_refactoring_clicked')
+      analytics.trackNavigation('start_refactoring')
       router.push('/refactor/new')
     }
   }
 
   const handleRandomEvolution = async () => {
+    analytics.trackNavigation('random_evolution')
     const evolutionId = await fetchRandomEvolution()
     if (evolutionId) {
       router.push(`/refactor/${evolutionId}`)
@@ -47,6 +48,7 @@ export default function useNavigation(): UseNavigationReturn {
   }
 
   const navigateToProfile = () => {
+    analytics.trackNavigation('profile_view')
     router.push('/profile')
   }
 

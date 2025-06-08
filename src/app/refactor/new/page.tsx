@@ -4,12 +4,15 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/src/lib/supabase/client'
 import { generateFileName, extractErrorMessage } from '@/src/lib/utils/fileUtils'
+import { analytics, usePageView } from '@/src/lib/analytics'
 
 export default function NewRefactoring() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [captureMethod, setCaptureMethod] = useState<'camera' | 'upload' | null>(null)
+
+  usePageView('new_evolution')
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -45,6 +48,10 @@ export default function NewRefactoring() {
 
       if (dbError) throw dbError
 
+      analytics.trackEvolutionCreate('before', { 
+        evolution_id: refactoring.id,
+        capture_method: captureMethod 
+      })
       router.push(`/refactor/${refactoring.id}`)
     } catch (error) {
       console.error('Error uploading screenshot:', error)
@@ -110,6 +117,7 @@ export default function NewRefactoring() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <button
                   onClick={() => {
+                    analytics.trackFeatureUsage('upload', 'camera_capture')
                     setCaptureMethod('camera')
                     handleCameraCapture()
                   }}
@@ -125,6 +133,7 @@ export default function NewRefactoring() {
 
                 <button
                   onClick={() => {
+                    analytics.trackFeatureUsage('upload', 'file_upload')
                     setCaptureMethod('upload')
                     handleUploadClick()
                   }}

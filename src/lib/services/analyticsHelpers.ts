@@ -17,7 +17,7 @@ export const analyticsHelpers = {
   },
 
   trackStartRefactoringClick(): void {
-    analytics.track('start_refactoring_clicked')
+    analytics.trackNavigation('start_refactoring')
   },
 
   trackAuthPromptShown(): void {
@@ -33,25 +33,25 @@ export const analyticsHelpers = {
   },
 
   trackRandomEvolutionClick(): void {
-    analytics.track('random_evolution_clicked')
+    analytics.trackNavigation('random_evolution')
   },
 
   trackLanguageFilterChange(language: string): void {
-    analytics.track('filter_changed', {
+    analytics.trackFeatureUsage('filter', 'language_change', {
       filter_type: 'language',
       filter_value: language
     })
   },
 
   trackSortChange(sortBy: string): void {
-    analytics.track('sort_changed', {
+    analytics.trackFeatureUsage('sort', 'sort_change', {
       sort_value: sortBy
     })
   },
 
   trackSearchPerformed(searchTerm: string): void {
-    analytics.track('search_performed', {
-      search_term: searchTerm.length > 0 ? 'has_term' : 'empty'
+    analytics.trackSearch(searchTerm, 0, {
+      has_term: searchTerm.length > 0
     })
   }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/src/lib/supabase/client'
+import { analytics } from '@/src/lib/analytics'
 import type { User } from '@supabase/supabase-js'
 
 export interface AuthPromptState {
@@ -14,6 +15,15 @@ export const authService = {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       console.log('User fetched:', user?.id)
+      
+      // Track login success if user exists
+      if (user) {
+        analytics.identify(user.id, {
+          email: user.email,
+          created_at: user.created_at
+        })
+      }
+      
       return user
     } catch (error) {
       console.error('Error fetching user:', error)
@@ -26,6 +36,11 @@ export const authService = {
   },
 
   showAuthenticationPrompt(setShowAuthPrompt: (show: boolean) => void): void {
+    analytics.trackAuth('prompt_shown')
     setShowAuthPrompt(true)
+  },
+
+  trackLogout(): void {
+    analytics.trackAuth('logout')
   }
 }

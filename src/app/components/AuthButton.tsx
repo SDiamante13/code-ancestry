@@ -3,6 +3,7 @@
 import { createClient } from '@/src/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { analytics } from '@/src/lib/analytics'
 import type { User } from '@supabase/supabase-js'
 
 export default function AuthButton() {
@@ -30,6 +31,7 @@ export default function AuthButton() {
 
   const handleSignOut = async () => {
     const supabase = createClient()
+    analytics.trackAuth('logout')
     await supabase.auth.signOut()
     router.refresh()
   }
@@ -71,6 +73,7 @@ export default function AuthButton() {
         <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-50">
           <button
             onClick={() => {
+              analytics.trackNavigation('profile_view')
               router.push('/profile')
               setShowMenu(false)
             }}

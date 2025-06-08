@@ -6,7 +6,7 @@ import { User } from '@supabase/supabase-js'
 import AuthButton from '@/src/app/components/AuthButton'
 import QuickActions from '@/src/app/components/QuickActions'
 import EvolutionsFeed from '@/src/app/components/EvolutionsFeed'
-import { analytics, usePageView } from '@/src/lib/analytics'
+import { analytics, usePageView, useUserIdentification } from '@/src/lib/analytics'
 import { fetchRandomEvolution } from '@/src/lib/utils/evolution'
 import useRefactorings from '@/src/lib/hooks/useRefactorings'
 import useUserStats from '@/src/lib/hooks/useUserStats'
@@ -36,6 +36,11 @@ export default function DashboardPage({ user }: DashboardPageProps) {
     sort_by: sortBy
   })
 
+  useUserIdentification(user.id, {
+    email: user.email,
+    created_at: user.created_at
+  })
+
   useEffect(() => {
     if (user) {
       fetchUserStats(user.id)
@@ -43,7 +48,7 @@ export default function DashboardPage({ user }: DashboardPageProps) {
   }, [user, fetchUserStats])
 
   const handleStartRefactoring = async () => {
-    analytics.track('start_refactoring_clicked')
+    analytics.trackNavigation('start_refactoring')
     router.push('/refactor/new')
   }
 

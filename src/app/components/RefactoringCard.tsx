@@ -96,7 +96,13 @@ export default function RefactoringCard({ refactoring }: RefactoringCardProps) {
                   </span>
                 )}
                 <button
-                  onClick={() => router.push(`/refactor/${refactoring.id}`)}
+                  onClick={() => {
+                    analytics.trackUserEngagement('click', { 
+                      action: 'view_details',
+                      evolution_id: refactoring.id 
+                    })
+                    router.push(`/refactor/${refactoring.id}`)
+                  }}
                   className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-lg font-semibold hover:shadow-lg transition-all"
                 >
                   View Details

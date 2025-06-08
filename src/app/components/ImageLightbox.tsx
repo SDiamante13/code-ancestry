@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useCallback } from 'react'
+import { analytics } from '@/src/lib/analytics'
 
 interface ImageLightboxProps {
   isOpen: boolean
@@ -18,6 +19,7 @@ export default function ImageLightbox({ isOpen, onClose, imageSrc, title }: Imag
 
   useEffect(() => {
     if (isOpen) {
+      analytics.trackFeatureUsage('lightbox', 'open', { title })
       document.addEventListener('keydown', handleKeyDown)
       document.body.style.overflow = 'hidden'
     } else {
@@ -28,7 +30,7 @@ export default function ImageLightbox({ isOpen, onClose, imageSrc, title }: Imag
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = 'unset'
     }
-  }, [isOpen, handleKeyDown])
+  }, [isOpen, handleKeyDown, title])
 
   if (!isOpen) return null
 

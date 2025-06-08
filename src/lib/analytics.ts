@@ -1,4 +1,4 @@
-// Simple analytics tracking for CodeAncestry
+// Analytics tracking for CodeAncestry with PostHog integration
 // Tracks key user interactions and feature usage
 
 interface AnalyticsEvent {
@@ -9,8 +9,27 @@ interface AnalyticsEvent {
 
 class Analytics {
   private isDev = process.env.NODE_ENV === 'development'
+  private posthog: any = null
 
-  // Track events to console in dev, could integrate with analytics service later
+  constructor() {
+    // Initialize PostHog if available
+    if (typeof window !== 'undefined') {
+      this.initializePostHog()
+    }
+  }
+
+  private async initializePostHog() {
+    try {
+      // Check if PostHog is available globally
+      if (typeof window !== 'undefined' && (window as any).posthog) {
+        this.posthog = (window as any).posthog
+      }
+    } catch (error) {
+      console.warn('PostHog not available:', error)
+    }
+  }
+
+  // Track events with PostHog integration
   track(event: string, properties?: Record<string, any>, userId?: string) {
     const eventData: AnalyticsEvent = {
       event,
@@ -27,7 +46,21 @@ class Analytics {
       console.log('📊 Analytics Event:', eventData)
     }
 
-    // Store in localStorage for now (could send to analytics service)
+    // Send to PostHog if available
+    if (this.posthog) {
+      try {
+        this.posthog.capture(event, eventData.properties)
+        
+        // Identify user if userId is provided
+        if (userId) {
+          this.posthog.identify(userId)
+        }
+      } catch (error) {
+        console.warn('PostHog tracking failed:', error)
+      }
+    }
+
+    // Fallback: Store in localStorage for debugging
     if (typeof window !== 'undefined') {
       const existingEvents = JSON.parse(localStorage.getItem('codeancestry_analytics') || '[]')
       existingEvents.push(eventData)
@@ -39,9 +72,28 @@ class Analytics {
       
       localStorage.setItem('codeancestry_analytics', JSON.stringify(existingEvents))
     }
+  }
 
-    // TODO: Send to analytics service (PostHog, Mixpanel, etc.)
-    // this.sendToAnalyticsService(eventData)
+  // Identify user for PostHog
+  identify(userId: string, traits?: Record<string, any>) {
+    if (this.posthog) {
+      try {
+        this.posthog.identify(userId, traits)
+      } catch (error) {
+        console.warn('PostHog identify failed:', error)
+      }
+    }
+  }
+
+  // Set user properties
+  setUserProperties(properties: Record<string, any>) {
+    if (this.posthog) {
+      try {
+        this.posthog.people.set(properties)
+      } catch (error) {
+        console.warn('PostHog user properties failed:', error)
+      }
+    }
   }
 
   // Feature-specific tracking methods
@@ -55,6 +107,13 @@ class Analytics {
   trackEvolutionCreate(step: 'before' | 'during' | 'after', properties?: Record<string, any>) {
     this.track('evolution_create_step', {
       step,
+      ...properties
+    })
+  }
+
+  trackEvolutionComplete(evolutionId: string, properties?: Record<string, any>) {
+    this.track('evolution_completed', {
+      evolution_id: evolutionId,
       ...properties
     })
   }
@@ -74,15 +133,21 @@ class Analytics {
     })
   }
 
-  trackAuth(action: 'prompt_shown' | 'signup_clicked' | 'continue_browsing') {
+  trackAuth(action: 'prompt_shown' | 'signup_clicked' | 'continue_browsing' | 'login_success' | 'logout') {
     this.track('auth_interaction', {
+      action,
+    })
+  }
+
+  trackNavigation(action: 'start_refactoring' | 'random_evolution' | 'profile_view' | 'home_view') {
+    this.track('navigation', {
       action,
     })
   }
 
   trackSearch(query: string, results: number, filters?: Record<string, any>) {
     this.track('search', {
-      query,
+      query: query.length > 0 ? 'has_term' : 'empty',
       results_count: results,
       filters,
     })
@@ -99,6 +164,21 @@ class Analytics {
     this.track('error', {
       error_message: error,
       ...context,
+    })
+  }
+
+  trackFeatureUsage(feature: string, action: string, properties?: Record<string, any>) {
+    this.track('feature_usage', {
+      feature,
+      action,
+      ...properties
+    })
+  }
+
+  trackUserEngagement(action: 'scroll' | 'click' | 'hover' | 'share', properties?: Record<string, any>) {
+    this.track('user_engagement', {
+      action,
+      ...properties
     })
   }
 
@@ -129,4 +209,13 @@ export function usePageView(pageName: string, properties?: Record<string, any>) 
       ...properties
     })
   }, [pageName, properties])
+}
+
+// User identification hook
+export function useUserIdentification(userId?: string, traits?: Record<string, any>) {
+  useEffect(() => {
+    if (userId) {
+      analytics.identify(userId, traits)
+    }
+  }, [userId, traits])
 }

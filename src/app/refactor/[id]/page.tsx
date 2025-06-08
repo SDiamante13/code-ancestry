@@ -6,7 +6,7 @@ import { createClient } from '@/src/lib/supabase/client'
 import ScreenshotDisplay from '@/src/app/components/ScreenshotDisplay'
 import ReactionButtons from '@/src/app/components/ReactionButtons'
 import RefactoringDetailsForm from '@/src/app/components/RefactoringDetailsForm'
-import { analytics, usePageView } from '@/src/lib/analytics'
+import { analytics, usePageView, useUserIdentification } from '@/src/lib/analytics'
 import { generateFileName, extractErrorMessage } from '@/src/lib/utils/fileUtils'
 import { fetchRandomEvolution } from '@/src/lib/utils/evolution'
 import LoadingSpinner from '@/src/app/components/LoadingSpinner'
@@ -37,12 +37,18 @@ export default function RefactoringPage() {
   const [uploadingDuring, setUploadingDuring] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
   usePageView('evolution_detail', {
     evolution_id: id as string,
     has_during: !!refactoring?.during_screenshot_url,
     has_after: !!refactoring?.after_screenshot_url,
     is_complete: refactoring?.is_complete
+  })
+
+  useUserIdentification(currentUser?.id, {
+    email: currentUser?.email,
+    created_at: currentUser?.created_at
   })
 
   useEffect(() => {
@@ -66,6 +72,7 @@ export default function RefactoringPage() {
 
       if (error) throw error
       setRefactoring(data)
+      setCurrentUser(user)
       
       // Check if current user is the owner
       if (user && data.author_id) {
@@ -189,6 +196,10 @@ export default function RefactoringPage() {
       if (dbError) throw dbError
 
       analytics.trackEvolutionCreate('after', { evolution_id: refactoring.id })
+      analytics.trackEvolutionComplete(refactoring.id, { 
+        language: refactoring.language,
+        has_during: !!refactoring.during_screenshot_url 
+      })
       await fetchRefactoringAndUser()
     } catch (error) {
       console.error('Error uploading after screenshot:', error)
@@ -203,6 +214,10 @@ export default function RefactoringPage() {
   const handleShare = () => {
     const url = window.location.href
     navigator.clipboard.writeText(url)
+    analytics.trackUserEngagement('share', { 
+      evolution_id: refactoring?.id,
+      url: url 
+    })
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }

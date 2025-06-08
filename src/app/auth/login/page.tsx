@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/src/lib/supabase/client'
+import { analytics } from '@/src/lib/analytics'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -29,6 +30,7 @@ export default function LoginPage() {
           },
         })
         if (error) throw error
+        analytics.trackAuth('signup_clicked')
         setError('Check your email to confirm your account!')
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -36,6 +38,7 @@ export default function LoginPage() {
           password,
         })
         if (error) throw error
+        analytics.trackAuth('login_success')
         router.push('/')
         router.refresh()
       }

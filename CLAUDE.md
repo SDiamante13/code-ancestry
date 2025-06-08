@@ -19,6 +19,7 @@ CodeAncestry is a social platform where humans and AI assistants share and learn
 ### Tech Stack
 - **Frontend**: Next.js 15.3.3 with App Router, React 19, TypeScript, Tailwind CSS
 - **Backend**: Supabase (Auth, Database, Storage)
+- **Analytics**: PostHog for event tracking and user behavior analytics
 - **Styling**: Tailwind CSS v4 with PostCSS
 
 ### Key Directories
@@ -84,6 +85,8 @@ Storage bucket `screenshots` holds uploaded images with public access.
 ### Environment Variables Required
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+- `NEXT_PUBLIC_POSTHOG_KEY` - PostHog project API key
+- `NEXT_PUBLIC_POSTHOG_HOST` - PostHog instance URL (optional, defaults to https://app.posthog.com)
 
 ## Deployment
 
@@ -94,7 +97,7 @@ The app is optimized for Netlify deployment with Supabase backend:
 2. **Build Settings**: 
    - Build command: `npm run build`
    - Publish directory: `.next`
-3. **Environment Variables**: Add Supabase environment variables in Netlify dashboard
+3. **Environment Variables**: Add Supabase and PostHog environment variables in Netlify dashboard
 4. **Deploy**: Netlify will automatically build and deploy on every push
 
 The included `netlify.toml` configures:
@@ -114,5 +117,23 @@ The included `netlify.toml` configures:
 - Mobile-first responsive design with PWA considerations
 - Screenshots are clickable for full-size viewing via lightbox
 - Authenticated users get personalized dashboard with statistics
-- Analytics track user engagement and page views
+- Analytics track user engagement and page views via PostHog integration
 - Dual experience: public landing page for visitors, dashboard for users
+
+### PostHog Analytics Setup
+
+PostHog is integrated for comprehensive user behavior tracking and product analytics:
+
+1. **Setup**: Create a PostHog account at [posthog.com](https://posthog.com)
+2. **Configuration**: Add `NEXT_PUBLIC_POSTHOG_KEY` to your environment variables
+3. **Events Tracked**: 
+   - Page views and navigation
+   - Evolution creation steps (before/during/after screenshots)
+   - Reaction interactions (add/remove reactions)
+   - Authentication flows (signup prompts, login attempts)
+   - Image replacement actions
+   - Error events for debugging
+   - Focus mode usage
+   - Search queries and results
+
+The analytics implementation in `/lib/analytics.ts` provides a clean interface for tracking events throughout the application. In development mode, events are logged to console and stored in localStorage for debugging.

@@ -1,8 +1,5 @@
-import { analytics } from '@/src/lib/analytics'
-
 export async function fetchRandomEvolution(): Promise<string | null> {
   try {
-    analytics.track('random_evolution_clicked')
     const response = await fetch('/api/random-evolution')
     const data = await response.json()
     

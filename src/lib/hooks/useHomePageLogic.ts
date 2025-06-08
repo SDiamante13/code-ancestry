@@ -59,7 +59,8 @@ export default function useHomePageLogic(): UseHomePageLogicReturn {
   usePageView('home', {
     total_evolutions: refactorings.length,
     filter_language: filterLanguage,
-    sort_by: sortBy
+    sort_by: sortBy,
+    user_authenticated: !!user
   })
 
   useEffect(() => {
