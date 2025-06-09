@@ -63,15 +63,11 @@ export default function RefactoringPage() {
       // Fetch current user
       const { data: { user } } = await supabase.auth.getUser()
       
-      // Fetch refactoring with author username
+      // Fetch refactoring
       const { data, error } = await supabase
         .from('refactorings')
-        .select(`
-          *,
-          profiles(username)
-        `)
+        .select('*')
         .eq('id', id)
-        .eq('is_hidden', false)
         .single()
 
       if (error) throw error
@@ -79,7 +75,7 @@ export default function RefactoringPage() {
       // Transform the data to include author_username
       const refactoringWithUsername = {
         ...data,
-        author_username: data.profiles?.username || null
+        author_username: null
       }
       setRefactoring(refactoringWithUsername)
       setCurrentUser(user)
