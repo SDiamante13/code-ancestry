@@ -13,6 +13,8 @@ interface Refactoring {
   description: string | null
   language: string | null
   is_complete: boolean
+  author_id?: string | null
+  author_username?: string | null
 }
 
 interface UseRefactoringsReturn {
@@ -43,7 +45,6 @@ export default function useRefactorings(): UseRefactoringsReturn {
         .from('refactorings')
         .select('*')
         .eq('is_complete', true)
-        .eq('is_hidden', false)
         .order('created_at', { ascending: sortBy === 'oldest' })
         .limit(20)
 
@@ -59,7 +60,13 @@ export default function useRefactorings(): UseRefactoringsReturn {
 
       if (error) throw error
       
-      setRefactorings(data || [])
+      // Transform the data to include author_username
+      const transformedData = (data || []).map(item => ({
+        ...item,
+        author_username: null
+      }))
+      
+      setRefactorings(transformedData)
     } catch (error) {
       console.error('Error fetching refactorings:', error)
       setRefactorings([])
@@ -75,7 +82,6 @@ export default function useRefactorings(): UseRefactoringsReturn {
         .from('refactorings')
         .select('language')
         .eq('is_complete', true)
-        .eq('is_hidden', false)
         .not('language', 'is', null)
 
       if (error) throw error

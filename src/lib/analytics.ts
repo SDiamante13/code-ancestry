@@ -133,7 +133,7 @@ class Analytics {
     })
   }
 
-  trackAuth(action: 'prompt_shown' | 'signup_clicked' | 'continue_browsing' | 'login_success' | 'logout') {
+  trackAuth(action: 'prompt_shown' | 'signup_clicked' | 'continue_browsing' | 'login_success' | 'logout' | 'github_login_clicked' | 'google_login_clicked' | 'discord_login_clicked' | 'twitter_login_clicked') {
     this.track('auth_interaction', {
       action,
     })

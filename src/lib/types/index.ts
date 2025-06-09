@@ -8,6 +8,8 @@ export interface Refactoring {
   description: string | null
   language: string | null
   is_complete: boolean
+  author_id?: string | null
+  author_username?: string | null
 }
 
 export interface UserStats {

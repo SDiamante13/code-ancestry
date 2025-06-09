@@ -22,6 +22,7 @@ interface Refactoring {
   is_complete: boolean
   author_id: string | null
   created_at: string
+  author_username?: string
 }
 
 
@@ -62,16 +63,25 @@ export default function RefactoringPage() {
       // Fetch current user
       const { data: { user } } = await supabase.auth.getUser()
       
-      // Fetch refactoring
+      // Fetch refactoring with author username
       const { data, error } = await supabase
         .from('refactorings')
-        .select('*')
+        .select(`
+          *,
+          profiles(username)
+        `)
         .eq('id', id)
         .eq('is_hidden', false)
         .single()
 
       if (error) throw error
-      setRefactoring(data)
+      
+      // Transform the data to include author_username
+      const refactoringWithUsername = {
+        ...data,
+        author_username: data.profiles?.username || null
+      }
+      setRefactoring(refactoringWithUsername)
       setCurrentUser(user)
       
       // Check if current user is the owner
@@ -360,7 +370,7 @@ export default function RefactoringPage() {
                   <>
                     <h3 className="text-2xl font-bold text-white mb-2">Evolved by</h3>
                     <p className="text-purple-400 text-lg mb-2">
-                      {refactoring.author_id ? 'A Fellow Developer' : 'Anonymous'}
+                      {refactoring.author_username || (refactoring.author_id ? 'A Fellow Developer' : 'Anonymous')}
                     </p>
                     <p className="text-gray-400 text-sm">
                       {new Date(refactoring.created_at).toLocaleDateString('en-US', {

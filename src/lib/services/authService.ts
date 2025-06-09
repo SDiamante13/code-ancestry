@@ -31,6 +31,27 @@ export const authService = {
     }
   },
 
+  async signInWithProvider(provider: 'github' | 'google' | 'discord' | 'twitter'): Promise<{ error: any }> {
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+      
+      if (!error) {
+        analytics.trackAuth(`${provider}_login_clicked`)
+      }
+      
+      return { error }
+    } catch (error) {
+      console.error(`Error signing in with ${provider}:`, error)
+      return { error }
+    }
+  },
+
   requiresAuthentication(user: User | null): boolean {
     return !user
   },

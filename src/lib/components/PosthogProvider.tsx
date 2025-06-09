@@ -15,10 +15,10 @@ export function PosthogProvider({ children, user }: PosthogProviderProps) {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    // Initialize PostHog
-    if (typeof window !== 'undefined' && !posthog.__loaded) {
+    // Initialize PostHog only if key is provided
+    if (typeof window !== 'undefined' && !posthog.__loaded && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       posthog.init(
-        process.env.NEXT_PUBLIC_POSTHOG_KEY || '',
+        process.env.NEXT_PUBLIC_POSTHOG_KEY,
         {
           api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
           person_profiles: 'identified_only',
