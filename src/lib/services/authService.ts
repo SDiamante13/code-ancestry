@@ -31,7 +31,7 @@ export const authService = {
     }
   },
 
-  async signInWithProvider(provider: 'github' | 'google' | 'discord' | 'twitter'): Promise<{ error: any }> {
+  async signInWithProvider(provider: 'github' | 'google'): Promise<{ error: any }> {
     try {
       const supabase = createClient()
       const { error } = await supabase.auth.signInWithOAuth({
